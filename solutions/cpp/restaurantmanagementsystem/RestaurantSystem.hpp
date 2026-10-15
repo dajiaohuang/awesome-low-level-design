@@ -10,9 +10,11 @@
 class RestaurantSystem {
 private:
     std::vector<MenuItem*> menu;
+    std::vector<MenuItem*> retiredMenu;
     std::vector<Table*> tables;
     std::vector<Order*> orders;
     int orderIdCounter;
+    int menuItemIdCounter;
 
 public:
     RestaurantSystem();

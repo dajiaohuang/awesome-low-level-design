@@ -45,6 +45,7 @@ func (tm *TaskManager) UpdateTask(updatedTask *Task) {
 
 		if existingTask.GetAssignedUser() != updatedTask.GetAssignedUser() {
 			tm.unassignTaskFromUser(existingTask.GetAssignedUser(), existingTask)
+			existingTask.AssignedUser = updatedTask.GetAssignedUser()
 			tm.assignTaskToUser(updatedTask.GetAssignedUser(), existingTask)
 		}
 	}

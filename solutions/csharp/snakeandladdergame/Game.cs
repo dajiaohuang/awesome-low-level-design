@@ -59,16 +59,16 @@ class Game
             return;
         }
 
-        if (nextPosition == board.GetSize())
+        int finalPosition = board.GetFinalPosition(nextPosition);
+
+        if (finalPosition == board.GetSize())
         {
-            player.SetPosition(nextPosition);
+            player.SetPosition(finalPosition);
             this.winner = player;
             this.status = GameStatus.FINISHED;
             Console.WriteLine("Hooray! " + player.GetName() + " reached the final square " + board.GetSize() + " and won!");
             return;
         }
-
-        int finalPosition = board.GetFinalPosition(nextPosition);
 
         if (finalPosition > nextPosition) // Ladder
         {

@@ -10,7 +10,7 @@ class Match:
         self.format_strategy = format_strategy
         self.innings = [Innings(team1, team2)]
         self.current_state = ScheduledState()
-        self.current_status = None
+        self.current_status = MatchStatus.SCHEDULED
         self.observers = []
         self.winner = None
         self.result_message = ""

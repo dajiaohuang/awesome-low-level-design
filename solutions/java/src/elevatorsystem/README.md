@@ -51,14 +51,12 @@ Design and implement an Elevator System that can handle multiple requests, move 
 ## Example Usage
 
 ```java
-ElevatorController controller = new ElevatorController();
-controller.requestElevator(5, Direction.UP);
-controller.requestElevator(2, Direction.DOWN);
-
-// Simulate elevator steps
-for (int i = 0; i < 10; i++) {
-    controller.step();
-}
+ElevatorSystem elevatorSystem = ElevatorSystem.getInstance(2);
+elevatorSystem.start();
+elevatorSystem.requestElevator(5, Direction.UP);
+elevatorSystem.selectFloor(1, 10);
+elevatorSystem.requestElevator(3, Direction.DOWN);
+elevatorSystem.shutdown();
 ```
 
 ---

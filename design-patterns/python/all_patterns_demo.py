@@ -123,7 +123,7 @@ def run_bridge_demo():
 def run_composite_demo():
     """Run Composite Pattern Demo"""
     try:
-        from composite.composite_demo import composite_demo
+        from composite.filesystem.file_explorer_app import main as composite_demo
         print("\n" + "=" * 60)
         print("COMPOSITE PATTERN DEMO")
         print("=" * 60)
@@ -207,11 +207,10 @@ def main():
     run_template_method_demo()
     
     print("\n" + "=" * 60)
-    print("ALL IMPLEMENTED PATTERN DEMOS COMPLETED")
+    print("PATTERN DEMO RUN FINISHED")
     print("=" * 60)
-    print("\nPatterns implemented: 13/23")
-    print("Remaining patterns: Facade, Flyweight, Proxy, Chain of Responsibility,")
-    print("Iterator, Mediator, Memento, Visitor")
+    print("\nPattern demos attempted: 14")
+    print("See README.md for individual examples and incomplete placeholders.")
 
 
 if __name__ == "__main__":

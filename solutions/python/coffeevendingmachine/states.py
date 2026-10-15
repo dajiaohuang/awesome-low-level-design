@@ -68,15 +68,14 @@ class PaidState(VendingMachineState):
         inventory = Inventory.get_instance()
         coffee = machine.get_selected_coffee()
         
-        if not inventory.has_ingredients(coffee.get_recipe()):
+        if not inventory.deduct_ingredients(coffee.get_recipe()):
             print("Sorry, we are out of ingredients. Refunding your money.")
             print(f"Refunding {machine.get_money_inserted()}")
             machine.reset()
             machine.set_state(OutOfIngredientState())
             return
-        
-        # Deduct ingredients and prepare coffee
-        inventory.deduct_ingredients(coffee.get_recipe())
+
+        # Prepare only after the inventory reservation succeeds.
         coffee.prepare()
         
         # Calculate change

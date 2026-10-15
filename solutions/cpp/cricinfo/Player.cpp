@@ -9,9 +9,13 @@ std::string Player::getPlayerId() const { return playerId; }
 std::string Player::getName() const { return name; }
 std::string Player::getCountry() const { return country; }
 PlayerType Player::getType() const { return type; }
-PlayerStats& Player::getStats() { return stats; }
+PlayerStats Player::getStats() const {
+    std::lock_guard<std::mutex> guard(statsMutex);
+    return stats;
+}
 
 void Player::updateStats(const PlayerStats& matchStats) {
+    std::lock_guard<std::mutex> guard(statsMutex);
     stats.runsScored += matchStats.runsScored;
     stats.ballsFaced += matchStats.ballsFaced;
     stats.wicketsTaken += matchStats.wicketsTaken;
@@ -20,6 +24,7 @@ void Player::updateStats(const PlayerStats& matchStats) {
 }
 
 void Player::displayInfo() const {
+    std::lock_guard<std::mutex> guard(statsMutex);
     std::cout << "Player: " << name << " (ID: " << playerId << ")" << std::endl;
     std::cout << "Country: " << country << std::endl;
     std::cout << "Type: ";

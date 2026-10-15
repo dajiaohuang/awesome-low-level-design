@@ -19,6 +19,7 @@ class Match
         formatStrategy = format;
         innings = new List<Innings> { new Innings(team1, team2) };
         currentState = new ScheduledState();
+        currentStatus = MatchStatus.SCHEDULED;
         observers = new List<IMatchObserver>();
         resultMessage = "";
     }

@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <mutex>
 #include "User.hpp"
 #include "Wallet.hpp"
 #include "Transaction.hpp"
@@ -12,6 +13,7 @@ private:
     std::vector<User*> users;
     std::vector<Wallet*> wallets;
     int transactionIdCounter;
+    mutable std::mutex mutex;
 
 public:
     WalletSystem();

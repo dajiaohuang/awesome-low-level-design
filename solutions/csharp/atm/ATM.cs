@@ -75,7 +75,8 @@ class ATM
             throw new InvalidOperationException("Insufficient cash available in the ATM.");
         }
 
-        bankService.WithdrawMoney(currentCard, amount);
+        Card card = currentCard;
+        bankService.WithdrawMoney(card, amount);
 
         try
         {
@@ -83,7 +84,7 @@ class ATM
         }
         catch (Exception)
         {
-            bankService.DepositMoney(currentCard, amount); // Deposit back if dispensing fails
+            bankService.DepositMoney(card, amount); // Refund the account actually debited
             throw;
         }
     }

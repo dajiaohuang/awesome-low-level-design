@@ -2,10 +2,14 @@ class PostService
 {
     private readonly PostRepository postRepository = PostRepository.GetInstance();
     private readonly List<IPostObserver> observers = new List<IPostObserver>();
+    private readonly object observerLock = new object();
 
     public void AddObserver(IPostObserver observer)
     {
-        observers.Add(observer);
+        lock (observerLock)
+        {
+            observers.Add(observer);
+        }
     }
 
     public Post CreatePost(User author, string content)
@@ -13,7 +17,12 @@ class PostService
         Post post = new Post(author, content);
         postRepository.Save(post);
         author.AddPost(post);
-        foreach (var observer in observers)
+        IPostObserver[] observerSnapshot;
+        lock (observerLock)
+        {
+            observerSnapshot = observers.ToArray();
+        }
+        foreach (var observer in observerSnapshot)
         {
             observer.OnPostCreated(post);
         }
@@ -24,7 +33,12 @@ class PostService
     {
         Post post = postRepository.FindById(postId);
         post.AddLike(user);
-        foreach (var observer in observers)
+        IPostObserver[] observerSnapshot;
+        lock (observerLock)
+        {
+            observerSnapshot = observers.ToArray();
+        }
+        foreach (var observer in observerSnapshot)
         {
             observer.OnLike(post, user);
         }
@@ -35,7 +49,12 @@ class PostService
         Comment comment = new Comment(author, content);
         Post post = postRepository.FindById(commentableId);
         post.AddComment(comment);
-        foreach (var observer in observers)
+        IPostObserver[] observerSnapshot;
+        lock (observerLock)
+        {
+            observerSnapshot = observers.ToArray();
+        }
+        foreach (var observer in observerSnapshot)
         {
             observer.OnComment(post, comment);
         }

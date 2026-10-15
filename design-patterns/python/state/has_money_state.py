@@ -21,8 +21,9 @@ class HasMoneyState(MachineState):
         else:
             print("Item selected but insufficient money. Please insert more coins.")
     
-    def dispense_item(self, machine: 'VendingMachine') -> None:
+    def dispense_item(self, machine: 'VendingMachine') -> bool:
         print("Please select an item first.")
+        return False
     
     def cancel_transaction(self, machine: 'VendingMachine') -> None:
         print("Transaction cancelled. Returning money.")

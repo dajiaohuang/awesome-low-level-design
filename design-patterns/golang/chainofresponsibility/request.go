@@ -4,6 +4,10 @@ package chainofresponsibility
 type Request struct {
 	Type string
 	Data string
+	User string
+	UserRole string
+	RequestCount int
+	Payload string
 }
 
 // NewRequest creates a new Request

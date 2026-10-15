@@ -7,11 +7,12 @@ import (
 )
 
 type FoodDeliveryService struct {
-	customers      map[string]*Customer
-	restaurants    map[string]*Restaurant
-	orders         map[string]*Order
-	deliveryAgents map[string]*DeliveryAgent
-	mu             sync.RWMutex
+	customers        map[string]*Customer
+	restaurants      map[string]*Restaurant
+	orders           map[string]*Order
+	deliveryAgents   map[string]*DeliveryAgent
+	activeDeliveries map[*DeliveryAgent]*Order
+	mu               sync.RWMutex
 }
 
 var (
@@ -22,10 +23,11 @@ var (
 func GetFoodDeliveryService() *FoodDeliveryService {
 	once.Do(func() {
 		instance = &FoodDeliveryService{
-			customers:      make(map[string]*Customer),
-			restaurants:    make(map[string]*Restaurant),
-			orders:         make(map[string]*Order),
-			deliveryAgents: make(map[string]*DeliveryAgent),
+			customers:        make(map[string]*Customer),
+			restaurants:      make(map[string]*Restaurant),
+			orders:           make(map[string]*Order),
+			deliveryAgents:   make(map[string]*DeliveryAgent),
+			activeDeliveries: make(map[*DeliveryAgent]*Order),
 		}
 	})
 	return instance
@@ -106,6 +108,14 @@ func (s *FoodDeliveryService) UpdateOrderStatus(orderID string, status OrderStat
 		return fmt.Errorf("order not found")
 	}
 
+	if status == OrderStatusDelivered {
+		for agent, activeOrder := range s.activeDeliveries {
+			if activeOrder == order {
+				delete(s.activeDeliveries, agent)
+				agent.SetAvailable(true)
+			}
+		}
+	}
 	order.SetStatus(status)
 	s.notifyCustomer(order)
 
@@ -156,6 +166,7 @@ func (s *FoodDeliveryService) assignDeliveryAgent(order *Order) {
 		if agent.IsAvailable() {
 			agent.SetAvailable(false)
 			order.AssignDeliveryAgent(agent)
+			s.activeDeliveries[agent] = order
 			s.notifyDeliveryAgent(order)
 			break
 		}

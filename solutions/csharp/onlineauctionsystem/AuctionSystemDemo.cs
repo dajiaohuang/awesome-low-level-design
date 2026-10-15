@@ -41,7 +41,10 @@ public class AuctionSystemDemo
             auctionService.PlaceBid(laptopAuction.GetId(), alice.GetId(), 150.00m);
 
             Console.WriteLine("\n--- Waiting for auction to end automatically... ---");
-            Thread.Sleep(2000);
+            while (laptopAuction.IsActive())
+            {
+                Thread.Sleep(50);
+            }
         }
         catch (Exception e)
         {

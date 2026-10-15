@@ -5,7 +5,8 @@
 Transaction::Transaction(std::string transactionId, Book* book, Member* member,
                        TransactionType type, std::string issueDate, std::string dueDate)
     : transactionId(transactionId), book(book), member(member), type(type),
-      issueDate(issueDate), dueDate(dueDate), fine(0.0) {}
+      issueDate(issueDate), dueDate(dueDate), fine(0.0),
+      reservationActive(type == TransactionType::RESERVE) {}
 
 std::string Transaction::getTransactionId() const { return transactionId; }
 Book* Transaction::getBook() const { return book; }
@@ -22,6 +23,14 @@ void Transaction::setReturnDate(std::string date) {
 
 void Transaction::setFine(double amount) {
     fine = amount;
+}
+
+bool Transaction::isReservationActive() const {
+    return reservationActive;
+}
+
+void Transaction::fulfillReservation() {
+    reservationActive = false;
 }
 
 void Transaction::displayInfo() const {

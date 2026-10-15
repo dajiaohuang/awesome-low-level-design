@@ -40,6 +40,10 @@ public class TrafficControlSystem {
     public void stopSystem() {
         System.out.println("\n--- Shutting Down Traffic Control System ---");
         intersections.forEach(IntersectionController::stop);
+        if (executorService == null) {
+            System.out.println("No intersections were started. System shut down.");
+            return;
+        }
         executorService.shutdown();
         try {
             if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {

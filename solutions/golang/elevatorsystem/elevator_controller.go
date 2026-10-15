@@ -24,10 +24,10 @@ func NewElevatorController(numElevators, capacity int) *ElevatorController {
 	return controller
 }
 
-func (ec *ElevatorController) RequestElevator(sourceFloor, destinationFloor int) {
+func (ec *ElevatorController) RequestElevator(sourceFloor, destinationFloor int) bool {
 	elevator := ec.findOptimalElevator(sourceFloor, destinationFloor)
 	request := NewRequest(sourceFloor, destinationFloor)
-	elevator.AddRequest(request)
+	return elevator.AddRequest(request)
 }
 
 func (ec *ElevatorController) findOptimalElevator(sourceFloor, destinationFloor int) *Elevator {

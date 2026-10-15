@@ -32,15 +32,15 @@ public class Order extends Subject {
     }
 
     // State Pattern methods
-    public void shipOrder() { currentState.ship(this); }
-    public void deliverOrder() { currentState.deliver(this); }
-    public void cancelOrder() { currentState.cancel(this); }
+    public synchronized void shipOrder() { currentState.ship(this); }
+    public synchronized void deliverOrder() { currentState.deliver(this); }
+    public synchronized void cancelOrder() { currentState.cancel(this); }
 
     // Getters and Setters
     public String getId() { return id; }
-    public OrderStatus getStatus() { return status; }
-    public void setState(OrderState state) { this.currentState = state; }
-    public void setStatus(OrderStatus status) {
+    public synchronized OrderStatus getStatus() { return status; }
+    public synchronized void setState(OrderState state) { this.currentState = state; }
+    public synchronized void setStatus(OrderStatus status) {
         this.status = status;
         notifyObservers(this);
     }

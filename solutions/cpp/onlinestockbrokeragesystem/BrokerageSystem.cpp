@@ -2,39 +2,44 @@
 #include <iostream>
 #include <algorithm>
 
-BrokerageSystem::BrokerageSystem() : transactionIdCounter(1) {}
+BrokerageSystem::BrokerageSystem() : transactionIdCounter(1), userIdCounter(1) {}
 
 BrokerageSystem::~BrokerageSystem() {
     for (auto user : users) delete user;
+    for (auto user : retiredUsers) delete user;
     for (auto& pair : stocks) delete pair.second;
     for (auto transaction : transactions) delete transaction;
 }
 
 User* BrokerageSystem::registerUser(const std::string& username, const std::string& email) {
-    std::string userId = "U" + std::to_string(users.size() + 1);
+    std::lock_guard<std::mutex> guard(mutex);
+    std::string userId = "U" + std::to_string(userIdCounter++);
     User* user = new User(userId, username, email);
     users.push_back(user);
     return user;
 }
 
 void BrokerageSystem::removeUser(const std::string& userId) {
+    std::lock_guard<std::mutex> guard(mutex);
     auto it = std::find_if(users.begin(), users.end(),
         [userId](User* user) { return user->getUserId() == userId; });
     
     if (it != users.end()) {
-        delete *it;
+        retiredUsers.push_back(*it);
         users.erase(it);
     }
 }
 
 Stock* BrokerageSystem::addStock(const std::string& symbol, const std::string& companyName,
                                 double price, int shares) {
+    std::lock_guard<std::mutex> guard(mutex);
     Stock* stock = new Stock(symbol, companyName, price, shares);
     stocks[symbol] = stock;
     return stock;
 }
 
 void BrokerageSystem::updateStockPrice(const std::string& symbol, double newPrice) {
+    std::lock_guard<std::mutex> guard(mutex);
     if (Stock* stock = findStock(symbol)) {
         stock->setCurrentPrice(newPrice);
         updatePortfolioValues();
@@ -42,6 +47,7 @@ void BrokerageSystem::updateStockPrice(const std::string& symbol, double newPric
 }
 
 bool BrokerageSystem::deposit(const std::string& userId, double amount) {
+    std::lock_guard<std::mutex> guard(mutex);
     if (User* user = findUser(userId)) {
         return user->deposit(amount);
     }
@@ -49,6 +55,7 @@ bool BrokerageSystem::deposit(const std::string& userId, double amount) {
 }
 
 bool BrokerageSystem::withdraw(const std::string& userId, double amount) {
+    std::lock_guard<std::mutex> guard(mutex);
     if (User* user = findUser(userId)) {
         return user->withdraw(amount);
     }
@@ -56,6 +63,7 @@ bool BrokerageSystem::withdraw(const std::string& userId, double amount) {
 }
 
 Transaction* BrokerageSystem::buyStock(const std::string& userId, const std::string& symbol, int quantity) {
+    std::lock_guard<std::mutex> guard(mutex);
     User* user = findUser(userId);
     Stock* stock = findStock(symbol);
     
@@ -82,6 +90,7 @@ Transaction* BrokerageSystem::buyStock(const std::string& userId, const std::str
 }
 
 Transaction* BrokerageSystem::sellStock(const std::string& userId, const std::string& symbol, int quantity) {
+    std::lock_guard<std::mutex> guard(mutex);
     User* user = findUser(userId);
     Stock* stock = findStock(symbol);
     
@@ -109,6 +118,7 @@ Transaction* BrokerageSystem::sellStock(const std::string& userId, const std::st
 }
 
 void BrokerageSystem::displayStocks() const {
+    std::lock_guard<std::mutex> guard(mutex);
     std::cout << "\nAvailable Stocks:" << std::endl;
     for (const auto& pair : stocks) {
         pair.second->displayInfo();
@@ -117,6 +127,7 @@ void BrokerageSystem::displayStocks() const {
 }
 
 void BrokerageSystem::displayUsers() const {
+    std::lock_guard<std::mutex> guard(mutex);
     std::cout << "\nRegistered Users:" << std::endl;
     for (const auto& user : users) {
         user->displayInfo();
@@ -125,12 +136,14 @@ void BrokerageSystem::displayUsers() const {
 }
 
 void BrokerageSystem::displayUserPortfolio(const std::string& userId) const {
+    std::lock_guard<std::mutex> guard(mutex);
     if (User* user = findUser(userId)) {
         user->getPortfolio()->displayInfo();
     }
 }
 
 void BrokerageSystem::displayTransactionHistory(const std::string& userId) const {
+    std::lock_guard<std::mutex> guard(mutex);
     std::cout << "\nTransaction History:" << std::endl;
     for (const auto& transaction : transactions) {
         if (transaction->getUser()->getUserId() == userId) {

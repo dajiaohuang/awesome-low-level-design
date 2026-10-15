@@ -50,10 +50,16 @@ class Trip
         NotifyObservers();
     }
 
-    public void EndTrip()
+    public bool EndTrip()
     {
+        TripStatus previousStatus = status;
         currentState.End(this);
-        NotifyObservers();
+        bool completed = previousStatus != TripStatus.COMPLETED && status == TripStatus.COMPLETED;
+        if (completed)
+        {
+            NotifyObservers();
+        }
+        return completed;
     }
 
     // Getters

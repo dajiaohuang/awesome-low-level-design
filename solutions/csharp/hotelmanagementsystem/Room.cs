@@ -39,6 +39,13 @@ namespace HotelManagement
             }
         }
 
+        public void CancelBooking()
+        {
+            if (Status != RoomStatus.BOOKED && Status != RoomStatus.OCCUPIED)
+                throw new InvalidOperationException("Room has no booking to cancel.");
+            Status = RoomStatus.AVAILABLE;
+        }
+
         public void CheckOut()
         {
             if (Status == RoomStatus.OCCUPIED)

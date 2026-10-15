@@ -7,7 +7,7 @@ public:
     File(const std::string& name, int size);
     int getSize() const override;
     void printStructure(const std::string& indent) const override;
-    void delete() override;
+    void deleteItem() override;
 
 private:
     std::string name;

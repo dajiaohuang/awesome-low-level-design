@@ -5,8 +5,9 @@
 RideService::RideService() : userIdCounter(1), rideIdCounter(1) {}
 
 RideService::~RideService() {
-    for (auto user : users) delete user;
     for (auto ride : rides) delete ride;
+    for (auto user : users) delete user;
+    for (auto user : retiredUsers) delete user;
 }
 
 User* RideService::registerUser(const std::string& name, const std::string& phone,
@@ -22,7 +23,7 @@ void RideService::removeUser(const std::string& userId) {
         [userId](User* user) { return user->getUserId() == userId; });
     
     if (it != users.end()) {
-        delete *it;
+        retiredUsers.push_back(*it);
         users.erase(it);
     }
 }
@@ -48,7 +49,7 @@ bool RideService::assignDriver(const std::string& rideId, const std::string& dri
     Ride* ride = findRide(rideId);
     User* driver = findUser(driverId);
     
-    if (!ride || !driver || driver->getType() != UserType::DRIVER) return false;
+    if (!ride || !driver || driver->getType() != UserType::DRIVER || !driver->isActive()) return false;
     
     ride->assignDriver(driver);
     return true;

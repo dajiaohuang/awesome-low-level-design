@@ -70,21 +70,22 @@ class OnlineShoppingSystem:
             print("Cannot place an order with an empty cart.")
             return None
 
-        # 1. Process payment
-        payment_success = self.payment_service.process_payment(payment_strategy, cart.calculate_total())
-        if not payment_success:
-            print("Payment failed. Please try again.")
-            return None
-
-        # 2. Create order and update inventory
+        # Reserve the complete cart before invoking the existing payment boundary.
         try:
             order = self.order_service.create_order(customer, cart)
-            self.orders[order.get_id()] = order
-
-            # 3. Clear the cart
-            cart.clear_cart()
-
-            return order
         except Exception as e:
             print(f"Order placement failed: {e}")
             return None
+
+        payment_success = False
+        try:
+            payment_success = self.payment_service.process_payment(payment_strategy, cart.calculate_total())
+        finally:
+            if not payment_success:
+                self.inventory_service.restore_stock_for_order(order.get_items())
+        if not payment_success:
+            print("Payment failed. Please try again.")
+            return None
+        self.orders[order.get_id()] = order
+        cart.clear_cart()
+        return order

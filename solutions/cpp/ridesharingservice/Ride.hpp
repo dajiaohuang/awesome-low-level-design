@@ -19,6 +19,7 @@ private:
     std::string rideId;
     User* rider;
     User* driver;
+    bool driverReservationHeld = false;
     Location* pickup;
     Location* dropoff;
     double distance;

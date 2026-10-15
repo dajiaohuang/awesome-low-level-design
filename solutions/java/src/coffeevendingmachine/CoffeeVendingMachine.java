@@ -11,6 +11,8 @@ import coffeevendingmachine.state.VendingMachineState;
 import coffeevendingmachine.decorator.Coffee;
 
 import java.util.List;
+import java.util.Map;
+import coffeevendingmachine.enums.Ingredient;
 
 public class CoffeeVendingMachine {
     private static final CoffeeVendingMachine INSTANCE = new CoffeeVendingMachine();
@@ -64,7 +66,7 @@ public class CoffeeVendingMachine {
         this.moneyInserted = 0;
     }
 
-    public Map<String, Integer> showIngredientsMap() {
-        return ingredientStore.getAllIngredients();
+    public Map<Ingredient, Integer> showIngredientsMap() {
+        return Inventory.getInstance().getAllIngredients();
     }
 }

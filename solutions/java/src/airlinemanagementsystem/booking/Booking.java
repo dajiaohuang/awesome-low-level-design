@@ -23,9 +23,11 @@ public class Booking {
         this.status = BookingStatus.CONFIRMED;
     }
 
-    public void cancel() {
-        status = BookingStatus.CANCELLED;
-        seat.release();
+    public synchronized void cancel() {
+        if (status == BookingStatus.CONFIRMED) {
+            status = BookingStatus.CANCELLED;
+            seat.release();
+        }
     }
 
     public String getId() {

@@ -20,13 +20,15 @@ class Innings:
         runs_scored = ball.get_runs_scored()
         self.score += runs_scored
         
-        if ball.get_extra_type() in [ExtraType.WIDE, ExtraType.NO_BALL]:
+        extra_type = ball.get_extra_type()
+        if extra_type in [ExtraType.WIDE, ExtraType.NO_BALL]:
             self.score += 1
-        else:
-            ball.get_faced_by().get_stats().update_runs(runs_scored)
+        if extra_type not in [ExtraType.WIDE, ExtraType.NO_BALL]:
             ball.get_faced_by().get_stats().increment_balls_played()
-            self.player_stats[ball.get_faced_by()].update_runs(runs_scored)
             self.player_stats[ball.get_faced_by()].increment_balls_played()
+        if extra_type not in [ExtraType.BYE, ExtraType.LEG_BYE]:
+            ball.get_faced_by().get_stats().update_runs(runs_scored)
+            self.player_stats[ball.get_faced_by()].update_runs(runs_scored)
         
         if ball.is_wicket():
             self.wickets += 1

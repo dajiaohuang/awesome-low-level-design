@@ -12,14 +12,14 @@ class Food {
     console.log("Boiling the water...");
   }
   brew() {
-    throw new error("Method 'brew()' must be implemented");
+    throw new Error("Method 'brew()' must be implemented");
   }
 
   pourInCup() {
     console.log("Pouring into cup...");
   }
   addCondiments() {
-    throw new error("Method 'addCondiments()' must be implemented");
+    throw new Error("Method 'addCondiments()' must be implemented");
   }
 
   // private method

@@ -78,26 +78,26 @@ public class OnlineShoppingSystem {
             return null;
         }
 
-        // 1. Process payment
-        boolean paymentSuccess = paymentService.processPayment(paymentStrategy, cart.calculateTotal());
+        // Reserve the complete cart before invoking the existing payment boundary.
+        Order order;
+        try {
+            order = orderService.createOrder(customer, cart);
+        } catch (Exception e) {
+            System.err.println("Order placement failed: " + e.getMessage());
+            return null;
+        }
+        boolean paymentSuccess = false;
+        try {
+            paymentSuccess = paymentService.processPayment(paymentStrategy, cart.calculateTotal());
+        } finally {
+            if (!paymentSuccess) order.cancelOrder();
+        }
         if (!paymentSuccess) {
             System.out.println("Payment failed. Please try again.");
             return null;
         }
-
-        // 2. Create order and update inventory
-        try {
-            Order order = orderService.createOrder(customer, cart);
-            orders.put(order.getId(), order);
-
-            // 3. Clear the cart
-            cart.clearCart();
-
-            return order;
-        } catch (Exception e) {
-            System.err.println("Order placement failed: " + e.getMessage());
-            // In a real system, we would trigger a refund here.
-            return null;
-        }
+        orders.put(order.getId(), order);
+        cart.clearCart();
+        return order;
     }
 }

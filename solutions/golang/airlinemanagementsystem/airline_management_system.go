@@ -8,7 +8,6 @@ import (
 type AirlineManagementSystem struct {
     flights         []*Flight
     aircrafts       []*Aircraft
-    flightSearch    *FlightSearch
     bookingManager  *BookingManager
     paymentProcessor *PaymentProcessor
     mu              sync.RWMutex
@@ -21,7 +20,6 @@ func NewAirlineManagementSystem() *AirlineManagementSystem {
         bookingManager:   GetBookingManager(),
         paymentProcessor: GetPaymentProcessor(),
     }
-    system.flightSearch = NewFlightSearch(system.flights)
     return system
 }
 
@@ -38,7 +36,9 @@ func (ams *AirlineManagementSystem) AddAircraft(aircraft *Aircraft) {
 }
 
 func (ams *AirlineManagementSystem) SearchFlights(source, destination string, date time.Time) []*Flight {
-    return ams.flightSearch.SearchFlights(source, destination, date)
+    ams.mu.RLock()
+    defer ams.mu.RUnlock()
+    return NewFlightSearch(ams.flights).SearchFlights(source, destination, date)
 }
 
 func (ams *AirlineManagementSystem) BookFlight(flight *Flight, passenger *Passenger, seat *Seat, price float64) *Booking {

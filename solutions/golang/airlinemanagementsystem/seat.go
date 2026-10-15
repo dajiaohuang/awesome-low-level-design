@@ -17,10 +17,14 @@ func NewSeat(seatNumber string, seatType SeatType) *Seat {
 	}
 }
 
-func (s *Seat) Reserve() {
+func (s *Seat) Reserve() bool {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	if s.status != SeatStatusAvailable {
+		return false
+	}
 	s.status = SeatStatusReserved
+	return true
 }
 
 func (s *Seat) Release() {

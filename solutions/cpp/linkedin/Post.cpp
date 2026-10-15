@@ -1,4 +1,5 @@
 #include "Post.hpp"
+#include "User.hpp"
 #include <iostream>
 #include <algorithm>
 

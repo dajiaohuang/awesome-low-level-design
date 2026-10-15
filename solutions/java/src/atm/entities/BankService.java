@@ -44,7 +44,9 @@ public class BankService {
     }
 
     public void withdrawMoney(Card card, double amount) {
-        cardAccountMap.get(card).withdraw(amount);
+        if (!cardAccountMap.get(card).withdraw(amount)) {
+            throw new IllegalStateException("Insufficient account balance.");
+        }
     }
 
     public void depositMoney(Card card, double amount) {

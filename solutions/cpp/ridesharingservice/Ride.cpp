@@ -27,8 +27,10 @@ std::time_t Ride::getCompletionTime() const { return completionTime; }
 RideStatus Ride::getStatus() const { return status; }
 
 void Ride::assignDriver(User* driver) {
-    if (driver && driver->getType() == UserType::DRIVER) {
+    if (driver && driver->getType() == UserType::DRIVER && driver->isActive()) {
         this->driver = driver;
+        driver->setActive(false);
+        driverReservationHeld = true;
         status = RideStatus::ACCEPTED;
     }
 }
@@ -45,6 +47,10 @@ void Ride::updateStatus(RideStatus status) {
     if (status == RideStatus::COMPLETED) {
         completionTime = std::time(nullptr);
         calculateFare();
+    }
+    if ((status == RideStatus::COMPLETED || status == RideStatus::CANCELLED) && driverReservationHeld) {
+        driverReservationHeld = false;
+        driver->setActive(true);
     }
 }
 

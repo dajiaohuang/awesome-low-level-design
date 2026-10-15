@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <mutex>
 #include "Book.hpp"
 #include "Member.hpp"
 #include "Transaction.hpp"
@@ -13,6 +14,7 @@ private:
     std::vector<Member*> members;
     std::vector<Transaction*> transactions;
     int transactionIdCounter;
+    mutable std::mutex mutex;
 
 public:
     LibraryManager();

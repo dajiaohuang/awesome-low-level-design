@@ -78,10 +78,10 @@ public class StockBrokerageSystemDemo
         system.CancelOrder(aliceCancelOrder);
         Console.WriteLine($"Order status after cancellation attempt: {aliceCancelOrder.GetStatus()}");
 
-        // Now try to cancel an already filled order
-        Console.WriteLine("\n--- Trying to cancel an already FILLED order (State Pattern) ---");
+        // The simplified matcher executed ten shares and cancelled the other ten.
+        Console.WriteLine("\n--- Checking the terminal partially-filled order (State Pattern) ---");
         Console.WriteLine($"Bob's sell order status: {bobSellOrder.GetStatus()}");
-        system.CancelOrder(bobSellOrder); // This should fail
+        system.CancelOrder(bobSellOrder); // The unfilled remainder was already cancelled.
         Console.WriteLine($"Bob's sell order status after cancel attempt: {bobSellOrder.GetStatus()}");
     }
 

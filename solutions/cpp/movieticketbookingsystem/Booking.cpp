@@ -2,6 +2,7 @@
 #include <iostream>
 #include <iomanip>
 #include <ctime>
+#include <sstream>
 
 Booking::Booking(std::string bookingId, Show* show, std::string customerName,
                 std::string customerPhone, const std::vector<int>& seatNumbers)

@@ -1,4 +1,5 @@
 from decimal import Decimal
+import threading
 from exception import InsufficientFundsException
 
 class Account:
@@ -9,15 +10,23 @@ class Account:
         self.currency = currency
         self.balance = Decimal('0.00')
         self.transactions = []
+        self._lock = threading.Lock()
 
     def deposit(self, amount):
-        self.balance += amount
+        with self._lock:
+            self.balance += amount
 
     def withdraw(self, amount):
-        if self.balance >= amount:
-            self.balance -= amount
-        else:
-            raise InsufficientFundsException("Insufficient funds in the account.")
+        with self._lock:
+            if self.balance >= amount:
+                self.balance -= amount
+            else:
+                raise InsufficientFundsException("Insufficient funds in the account.")
 
     def add_transaction(self, transaction):
-        self.transactions.append(transaction)
+        with self._lock:
+            self.transactions.append(transaction)
+
+    def get_transactions(self):
+        with self._lock:
+            return list(self.transactions)

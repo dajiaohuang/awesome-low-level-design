@@ -25,8 +25,8 @@ namespace HotelManagement
         {
             if (Status == ReservationStatus.CONFIRMED)
             {
+                Room.CancelBooking();
                 Status = ReservationStatus.CANCELLED;
-                Room.CheckOut();
             }
             else
             {

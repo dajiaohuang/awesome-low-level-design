@@ -17,20 +17,21 @@ abstract class NoteDispenser implements DispenseChain {
 
     @Override
     public synchronized void dispense(int amount) {
-        if (amount >= noteValue) {
-            int numToDispense = Math.min(amount / noteValue, this.numNotes);
+        int maxNotes = Math.min(amount / noteValue, this.numNotes);
+        for (int numToDispense = maxNotes; numToDispense >= 0; numToDispense--) {
             int remainingAmount = amount - (numToDispense * noteValue);
+            boolean remainderDispensable = remainingAmount == 0 ||
+                    (this.nextChain != null && this.nextChain.canDispense(remainingAmount));
+            if (!remainderDispensable) continue;
 
             if (numToDispense > 0) {
                 System.out.println("Dispensing " + numToDispense + " x $" + noteValue + " note(s)");
                 this.numNotes -= numToDispense;
             }
-
-            if (remainingAmount > 0 && this.nextChain != null) {
+            if (remainingAmount > 0) {
                 this.nextChain.dispense(remainingAmount);
             }
-        } else if (this.nextChain != null) {
-            this.nextChain.dispense(amount);
+            return;
         }
     }
 
@@ -39,12 +40,13 @@ abstract class NoteDispenser implements DispenseChain {
         if (amount < 0) return false;
         if (amount == 0) return true;
 
-        int numToUse = Math.min(amount / noteValue, this.numNotes);
-        int remainingAmount = amount - (numToUse * noteValue);
-
-        if (remainingAmount == 0) return true;
-        if (this.nextChain != null) {
-            return this.nextChain.canDispense(remainingAmount);
+        int maxNotes = Math.min(amount / noteValue, this.numNotes);
+        for (int numToUse = maxNotes; numToUse >= 0; numToUse--) {
+            int remainingAmount = amount - (numToUse * noteValue);
+            if (remainingAmount == 0 ||
+                    (this.nextChain != null && this.nextChain.canDispense(remainingAmount))) {
+                return true;
+            }
         }
         return false;
     }

@@ -23,7 +23,14 @@ namespace AirlineManagementSystem
 
         public void Cancel()
         {
-            Status = BookingStatus.CANCELLED;
+            lock (this)
+            {
+                if (Status == BookingStatus.CONFIRMED)
+                {
+                    Status = BookingStatus.CANCELLED;
+                    Seat.Release();
+                }
+            }
         }
     }
 }

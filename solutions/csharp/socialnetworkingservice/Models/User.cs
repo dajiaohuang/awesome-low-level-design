@@ -5,6 +5,7 @@ class User
     private readonly string email;
     private readonly HashSet<User> friends = new HashSet<User>();
     private readonly List<Post> posts = new List<Post>();
+    private readonly object collectionLock = new object();
 
     public User(string name, string email)
     {
@@ -15,16 +16,35 @@ class User
 
     public void AddFriend(User friend)
     {
-        friends.Add(friend);
+        lock (collectionLock)
+        {
+            friends.Add(friend);
+        }
     }
 
     public void AddPost(Post post)
     {
-        posts.Add(post);
+        lock (collectionLock)
+        {
+            posts.Add(post);
+        }
     }
 
     public string GetId() { return id; }
     public string GetName() { return name; }
-    public HashSet<User> GetFriends() { return friends; }
-    public List<Post> GetPosts() { return posts; }
+    public HashSet<User> GetFriends()
+    {
+        lock (collectionLock)
+        {
+            return new HashSet<User>(friends);
+        }
+    }
+
+    public List<Post> GetPosts()
+    {
+        lock (collectionLock)
+        {
+            return new List<Post>(posts);
+        }
+    }
 }

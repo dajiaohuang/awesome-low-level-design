@@ -107,7 +107,7 @@ public class MovieBookingService {
         // This is inefficient. In a real system, shows would have a direct link to the cinema.
         // For this example, we traverse the cinema list.
         return cinemas.values().stream()
-                .filter(cinema -> cinema.getScreens().contains(show.getScreen()))
+                .filter(cinema -> cinema.getScreens().contains(show.getPhysicalScreen()))
                 .findFirst()
                 .orElse(null);
     }

@@ -37,7 +37,8 @@ class BankService:
         return self._card_account_map[card].get_balance()
     
     def withdraw_money(self, card: Card, amount: float):
-        self._card_account_map[card].withdraw(amount)
+        if not self._card_account_map[card].withdraw(amount):
+            raise RuntimeError("Insufficient account balance.")
     
     def deposit_money(self, card: Card, amount: float):
         self._card_account_map[card].deposit(amount)

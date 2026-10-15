@@ -49,7 +49,7 @@ public class Elevator implements Runnable {
         notifyObservers(); // Notify observers on direction change
     }
 
-    public void move() {
+    public synchronized void move() {
         state.move(this);
     }
 

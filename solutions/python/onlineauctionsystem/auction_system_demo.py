@@ -42,7 +42,8 @@ class AuctionSystemDemo:
             auction_service.place_bid(laptop_auction.get_id(), alice.get_id(), Decimal("150.00"))
 
             print("\n--- Waiting for auction to end automatically... ---")
-            time.sleep(2)
+            while laptop_auction.is_active():
+                time.sleep(0.05)
         except Exception as e:
             print(f"An error occurred during bidding: {e}")
 

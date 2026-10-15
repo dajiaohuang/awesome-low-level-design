@@ -47,7 +47,10 @@ class BankService
 
     public void WithdrawMoney(Card card, double amount)
     {
-        cardAccountMap[card].Withdraw(amount);
+        if (!cardAccountMap[card].Withdraw(amount))
+        {
+            throw new InvalidOperationException("Insufficient account balance.");
+        }
     }
 
     public void DepositMoney(Card card, double amount)

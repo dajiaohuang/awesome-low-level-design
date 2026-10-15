@@ -34,7 +34,7 @@ class IngredientStore {
   }
 
   public getAllIngredients(): Map<string, number> {
-    return { ...this.inventory };
+    return new Map(this.inventory);
   }
 }
 export default IngredientStore;

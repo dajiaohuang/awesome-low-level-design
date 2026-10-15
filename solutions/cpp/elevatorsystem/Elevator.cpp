@@ -1,5 +1,6 @@
 #include "Elevator.hpp"
 #include <iostream>
+#include <algorithm>
 
 Elevator::Elevator(int id, int maxFloor, int minFloor)
     : id(id), currentFloor(minFloor), direction(Direction::IDLE),
@@ -22,19 +23,15 @@ void Elevator::setStatus(Status status) {
 
 void Elevator::addRequest(const Request& request) {
     requests.push(request);
-    floorsToVisit[request.getDestinationFloor()] = true;
-    
-    if (direction == Direction::IDLE) {
-        if (request.getDestinationFloor() > currentFloor) {
-            direction = Direction::UP;
-        } else if (request.getDestinationFloor() < currentFloor) {
-            direction = Direction::DOWN;
-        }
-    }
+    updateDirection();
 }
 
 void Elevator::moveToNextFloor() {
     if (status != Status::MOVING) return;
+    if (hasStopRequest()) {
+        processFloor();
+        return;
+    }
     
     if (direction == Direction::UP && currentFloor < maxFloor) {
         currentFloor++;
@@ -55,39 +52,24 @@ void Elevator::processFloor() {
         status = Status::STOPPED;
         std::cout << "Elevator " << id << " stopped at floor " << currentFloor << std::endl;
         
-        // Remove processed requests
-        while (!requests.empty() && requests.front().getDestinationFloor() == currentFloor) {
+        if (awaitingPickup) {
+            awaitingPickup = false;
+        } else {
             requests.pop();
+            awaitingPickup = true;
         }
+        updateDirection();
     }
 }
 
 void Elevator::updateDirection() {
-    if (direction == Direction::UP) {
-        bool hasHigherFloorRequest = false;
-        for (int i = currentFloor + 1; i <= maxFloor; i++) {
-            if (floorsToVisit[i]) {
-                hasHigherFloorRequest = true;
-                break;
-            }
-        }
-        if (!hasHigherFloorRequest) {
-            direction = Direction::DOWN;
-        }
-    } else if (direction == Direction::DOWN) {
-        bool hasLowerFloorRequest = false;
-        for (int i = currentFloor - 1; i >= minFloor; i--) {
-            if (floorsToVisit[i]) {
-                hasLowerFloorRequest = true;
-                break;
-            }
-        }
-        if (!hasLowerFloorRequest) {
-            direction = Direction::UP;
-        }
-    }
-    
+    std::fill(floorsToVisit.begin(), floorsToVisit.end(), false);
     if (!requests.empty()) {
+        int target = awaitingPickup ? requests.front().getSourceFloor()
+                                    : requests.front().getDestinationFloor();
+        floorsToVisit[target] = true;
+        direction = target > currentFloor ? Direction::UP :
+                    target < currentFloor ? Direction::DOWN : Direction::IDLE;
         status = Status::MOVING;
     } else {
         direction = Direction::IDLE;

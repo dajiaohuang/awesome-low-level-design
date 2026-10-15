@@ -49,7 +49,16 @@ public class ConcertTicketBookingSystem {
                     throw new SeatNotAvailableException("Seat " + seat.getSeatNumber() + " is not available.");
                 }
             }
-            seats.forEach(Seat::book);
+            int acquired = 0;
+            try {
+                for (Seat seat : seats) {
+                    seat.book();
+                    acquired++;
+                }
+            } catch (SeatNotAvailableException failure) {
+                for (Seat seat : seats.subList(0, acquired)) seat.release();
+                throw failure;
+            }
 
             // Create booking
             String bookingId = generateBookingId();
@@ -69,10 +78,12 @@ public class ConcertTicketBookingSystem {
     }
 
     public void cancelBooking(String bookingId) {
-        Booking booking = bookings.get(bookingId);
-        if (booking != null) {
-            booking.cancelBooking();
-            bookings.remove(bookingId);
+        synchronized (lock) {
+            Booking booking = bookings.get(bookingId);
+            if (booking != null) {
+                booking.cancelBooking();
+                bookings.remove(bookingId);
+            }
         }
     }
 

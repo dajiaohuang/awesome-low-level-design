@@ -6,7 +6,6 @@ import airlinemanagementsystem.seat.Seat;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 public class BookingManager {
     private static BookingManager instance;
@@ -25,10 +24,10 @@ public class BookingManager {
     }
 
     public Booking createBooking(Flight flight, Passenger passenger, Seat seat, double price) {
-        String bookingNumber = UUID.randomUUID().toString();
+        if (!seat.reserve()) return null;
         Booking booking = new Booking(flight, passenger, seat, price);
         synchronized (lock) {
-            bookings.put(bookingNumber, booking);
+            bookings.put(booking.getId(), booking);
         }
         return booking;
     }

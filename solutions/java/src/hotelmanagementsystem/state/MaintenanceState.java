@@ -5,7 +5,7 @@ import hotelmanagementsystem.model.Room;
 public class MaintenanceState implements RoomState {
     @Override
     public void book(Room room) {
-        System.out.println("Error: Room " + room.getRoomNumber() + " is under maintenance.");
+        throw new IllegalStateException("Room " + room.getRoomNumber() + " is under maintenance.");
     }
 
     @Override

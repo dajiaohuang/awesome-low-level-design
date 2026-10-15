@@ -25,23 +25,30 @@ class Inventory:
         return cls()
     
     def add_stock(self, ingredient: Ingredient, quantity: int):
-        self._stock[ingredient] = self._stock.get(ingredient, 0) + quantity
+        with self._lock:
+            self._stock[ingredient] = self._stock.get(ingredient, 0) + quantity
     
     def has_ingredients(self, recipe: Dict[Ingredient, int]) -> bool:
-        return all(self._stock.get(ingredient, 0) >= quantity 
-                  for ingredient, quantity in recipe.items())
-    
-    def deduct_ingredients(self, recipe: Dict[Ingredient, int]):
         with self._lock:
-            if not self.has_ingredients(recipe):
+            return self._has_ingredients(recipe)
+
+    def _has_ingredients(self, recipe: Dict[Ingredient, int]) -> bool:
+        return all(self._stock.get(ingredient, 0) >= quantity
+                   for ingredient, quantity in recipe.items())
+    
+    def deduct_ingredients(self, recipe: Dict[Ingredient, int]) -> bool:
+        with self._lock:
+            if not self._has_ingredients(recipe):
                 print("Not enough ingredients to make coffee.")
-                return
+                return False
             
             for ingredient, quantity in recipe.items():
                 self._stock[ingredient] -= quantity
+            return True
     
     def print_inventory(self):
-        print("--- Current Inventory ---")
-        for ingredient, quantity in self._stock.items():
-            print(f"{ingredient.value}: {quantity}")
-        print("-------------------------")
+        with self._lock:
+            print("--- Current Inventory ---")
+            for ingredient, quantity in self._stock.items():
+                print(f"{ingredient.value}: {quantity}")
+            print("-------------------------")

@@ -12,9 +12,10 @@ const (
 )
 
 type LibraryManager struct {
-	catalog map[string]*Book
-	members map[string]*Member
-	mu      sync.RWMutex
+	catalog     map[string]*Book
+	members     map[string]*Member
+	loanMembers map[string]*Member
+	mu          sync.RWMutex
 }
 
 var (
@@ -25,8 +26,9 @@ var (
 func GetLibraryManager() *LibraryManager {
 	once.Do(func() {
 		instance = &LibraryManager{
-			catalog: make(map[string]*Book),
-			members: make(map[string]*Member),
+			catalog:     make(map[string]*Book),
+			members:     make(map[string]*Member),
+			loanMembers: make(map[string]*Member),
 		}
 	})
 	return instance
@@ -59,7 +61,14 @@ func (lm *LibraryManager) RegisterMember(member *Member) {
 func (lm *LibraryManager) UnregisterMember(memberID string) {
 	lm.mu.Lock()
 	defer lm.mu.Unlock()
+	member := lm.members[memberID]
+	if member == nil {
+		return
+	}
 	delete(lm.members, memberID)
+	if len(member.GetBorrowedBooks()) > 0 {
+		lm.loanMembers[memberID] = member
+	}
 }
 
 func (lm *LibraryManager) GetMember(memberID string) *Member {
@@ -98,13 +107,31 @@ func (lm *LibraryManager) ReturnBook(memberID, isbn string) error {
 	defer lm.mu.Unlock()
 
 	member := lm.members[memberID]
-	book := lm.catalog[isbn]
+	if member == nil {
+		member = lm.loanMembers[memberID]
+	}
+	if member == nil {
+		return fmt.Errorf("book or member not found")
+	}
 
-	if member == nil || book == nil {
+	var book *Book
+	for _, borrowedBook := range member.GetBorrowedBooks() {
+		if borrowedBook.ISBN == isbn {
+			book = borrowedBook
+			break
+		}
+	}
+	if book == nil {
+		book = lm.catalog[isbn]
+	}
+	if book == nil {
 		return fmt.Errorf("book or member not found")
 	}
 
 	member.ReturnBook(book)
+	if lm.loanMembers[memberID] == member && len(member.GetBorrowedBooks()) == 0 {
+		delete(lm.loanMembers, memberID)
+	}
 	book.SetAvailable(true)
 	fmt.Printf("Book returned: %s by %s\n", book.Title, member.Name)
 	return nil

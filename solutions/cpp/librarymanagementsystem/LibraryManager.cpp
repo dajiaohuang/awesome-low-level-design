@@ -10,20 +10,37 @@ LibraryManager::~LibraryManager() {
 }
 
 void LibraryManager::addBook(Book* book) {
+    std::lock_guard<std::mutex> guard(mutex);
     books.push_back(book);
 }
 
 void LibraryManager::addMember(Member* member) {
+    std::lock_guard<std::mutex> guard(mutex);
     members.push_back(member);
 }
 
 bool LibraryManager::borrowBook(std::string memberId, std::string bookId,
                               std::string issueDate, std::string dueDate) {
+    std::lock_guard<std::mutex> guard(mutex);
     Member* member = findMember(memberId);
     Book* book = findBook(bookId);
     
-    if (!member || !member->isActive() || !book || 
-        book->getStatus() != BookStatus::AVAILABLE) {
+    if (!member || !member->isActive() || !book) {
+        return false;
+    }
+
+    Transaction* reservation = nullptr;
+    if (book->getStatus() == BookStatus::RESERVED) {
+        for (auto* existing : transactions) {
+            if (existing->isReservationActive() &&
+                existing->getBook()->getBookId() == bookId &&
+                existing->getMember()->getMemberId() == memberId) {
+                reservation = existing;
+                break;
+            }
+        }
+    }
+    if (book->getStatus() != BookStatus::AVAILABLE && !reservation) {
         return false;
     }
     
@@ -35,6 +52,9 @@ bool LibraryManager::borrowBook(std::string memberId, std::string bookId,
         issueDate,
         dueDate
     );
+    if (reservation) {
+        reservation->fulfillReservation();
+    }
     
     transactions.push_back(transaction);
     book->setStatus(BookStatus::BORROWED);
@@ -44,6 +64,7 @@ bool LibraryManager::borrowBook(std::string memberId, std::string bookId,
 
 bool LibraryManager::returnBook(std::string memberId, std::string bookId,
                               std::string returnDate) {
+    std::lock_guard<std::mutex> guard(mutex);
     Member* member = findMember(memberId);
     Book* book = findBook(bookId);
     Transaction* transaction = findTransaction(bookId, memberId);
@@ -72,6 +93,7 @@ bool LibraryManager::returnBook(std::string memberId, std::string bookId,
 }
 
 bool LibraryManager::reserveBook(std::string memberId, std::string bookId) {
+    std::lock_guard<std::mutex> guard(mutex);
     Member* member = findMember(memberId);
     Book* book = findBook(bookId);
     
@@ -95,6 +117,7 @@ bool LibraryManager::reserveBook(std::string memberId, std::string bookId) {
 
 bool LibraryManager::renewBook(std::string memberId, std::string bookId,
                              std::string newDueDate) {
+    std::lock_guard<std::mutex> guard(mutex);
     Member* member = findMember(memberId);
     Book* book = findBook(bookId);
     Transaction* transaction = findTransaction(bookId, memberId);
@@ -113,10 +136,12 @@ bool LibraryManager::renewBook(std::string memberId, std::string bookId,
         newDueDate
     );
     transactions.push_back(renewTrans);
+    transaction->setDueDate(newDueDate);
     return true;
 }
 
 void LibraryManager::displayAvailableBooks() const {
+    std::lock_guard<std::mutex> guard(mutex);
     std::cout << "\nAvailable Books:" << std::endl;
     for (const auto& book : books) {
         if (book->getStatus() == BookStatus::AVAILABLE) {
@@ -127,6 +152,7 @@ void LibraryManager::displayAvailableBooks() const {
 }
 
 void LibraryManager::displayMemberBooks(std::string memberId) const {
+    std::lock_guard<std::mutex> guard(mutex);
     Member* member = findMember(memberId);
     if (!member) return;
     
@@ -138,6 +164,7 @@ void LibraryManager::displayMemberBooks(std::string memberId) const {
 }
 
 void LibraryManager::displayAllMembers() const {
+    std::lock_guard<std::mutex> guard(mutex);
     std::cout << "\nAll Members:" << std::endl;
     for (const auto& member : members) {
         member->displayInfo();
@@ -146,6 +173,7 @@ void LibraryManager::displayAllMembers() const {
 }
 
 void LibraryManager::displayTransactionHistory() const {
+    std::lock_guard<std::mutex> guard(mutex);
     std::cout << "\nTransaction History:" << std::endl;
     for (const auto& transaction : transactions) {
         transaction->displayInfo();
@@ -172,7 +200,8 @@ Transaction* LibraryManager::findTransaction(const std::string& bookId,
     for (auto transaction : transactions) {
         if (transaction->getBook()->getBookId() == bookId &&
             transaction->getMember()->getMemberId() == memberId &&
-            transaction->getType() == TransactionType::BORROW) {
+            transaction->getType() == TransactionType::BORROW &&
+            transaction->getReturnDate().empty()) {
             return transaction;
         }
     }

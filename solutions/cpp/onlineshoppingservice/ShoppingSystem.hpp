@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <mutex>
 #include "User.hpp"
 #include "Product.hpp"
 #include "Cart.hpp"
@@ -14,8 +15,13 @@ private:
     std::vector<User*> users;
     std::vector<Product*> products;
     std::vector<Order*> orders;
+    std::vector<User*> retiredUsers;
+    std::vector<Product*> retiredProducts;
     std::map<std::string, Cart*> userCarts;
     int orderIdCounter;
+    int userIdCounter;
+    int productIdCounter;
+    mutable std::mutex mutex;
 
 public:
     ShoppingSystem();

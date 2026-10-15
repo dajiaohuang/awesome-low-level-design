@@ -21,8 +21,8 @@ double Order::getTotalAmount() const { return totalAmount; }
 std::time_t Order::getOrderTime() const { return orderTime; }
 OrderStatus Order::getStatus() const { return status; }
 
-void Order::addItem(MenuItem* menuItem, int quantity) {
-    if (!menuItem || !menuItem->isAvailable()) return;
+bool Order::addItem(MenuItem* menuItem, int quantity) {
+    if (!menuItem || !menuItem->isAvailable()) return false;
     
     // Check if item already exists
     auto it = std::find_if(items.begin(), items.end(),
@@ -35,6 +35,7 @@ void Order::addItem(MenuItem* menuItem, int quantity) {
     }
     
     calculateTotal();
+    return true;
 }
 
 void Order::removeItem(const std::string& itemId) {

@@ -4,6 +4,7 @@ class LinkedInSystem
     private static readonly object syncRoot = new object();
 
     private readonly Dictionary<string, Member> members = new Dictionary<string, Member>();
+    private readonly object membersLock = new object();
     private readonly ConnectionService connectionService;
     private readonly NewsFeedService newsFeedService;
     private readonly SearchService searchService;
@@ -32,13 +33,19 @@ class LinkedInSystem
 
     public void RegisterMember(Member member)
     {
-        members[member.GetId()] = member;
+        lock (membersLock)
+        {
+            members[member.GetId()] = member;
+        }
         Console.WriteLine($"New member registered: {member.GetName()}");
     }
 
     public Member GetMember(string name)
     {
-        return members.Values.FirstOrDefault(m => m.GetName() == name);
+        lock (membersLock)
+        {
+            return members.Values.FirstOrDefault(m => m.GetName() == name);
+        }
     }
 
     public string SendConnectionRequest(Member from, Member to)
@@ -53,7 +60,11 @@ class LinkedInSystem
 
     public void CreatePost(string memberId, string content)
     {
-        var author = members[memberId];
+        Member author;
+        lock (membersLock)
+        {
+            author = members[memberId];
+        }
         var post = new Post(author, content);
         newsFeedService.AddPost(author, post);
         Console.WriteLine($"{author.GetName()} created a new post.");
@@ -61,19 +72,31 @@ class LinkedInSystem
 
     public Post GetLatestPostByMember(string memberId)
     {
-        var memberPosts = newsFeedService.GetMemberPosts(members[memberId]);
+        Member member;
+        lock (membersLock)
+        {
+            member = members[memberId];
+        }
+        var memberPosts = newsFeedService.GetMemberPosts(member);
         return memberPosts.LastOrDefault();
     }
 
     public void ViewNewsFeed(string memberId)
     {
-        var member = members[memberId];
+        Member member;
+        lock (membersLock)
+        {
+            member = members[memberId];
+        }
         Console.WriteLine($"\n--- News Feed for {member.GetName()} ---");
         newsFeedService.DisplayFeedForMember(member, new ChronologicalSortStrategy());
     }
 
     public List<Member> SearchMemberByName(string name)
     {
-        return searchService.SearchByName(name);
+        lock (membersLock)
+        {
+            return searchService.SearchByName(name);
+        }
     }
 }

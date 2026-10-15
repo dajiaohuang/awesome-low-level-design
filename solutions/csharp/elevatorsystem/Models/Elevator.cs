@@ -45,7 +45,10 @@ class Elevator
 
     public void Move()
     {
-        state.Move(this);
+        lock (lockObject)
+        {
+            state.Move(this);
+        }
     }
 
     // --- Request Handling ---

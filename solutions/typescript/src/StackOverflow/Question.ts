@@ -37,6 +37,9 @@ export default class Question {
   }
 
   acceptAnswer(answer: Answer) {
+    if (this.acceptedAnswer !== null) {
+      this.acceptedAnswer.unmarkAsAccepted();
+    }
     this.acceptedAnswer = answer;
   }
 

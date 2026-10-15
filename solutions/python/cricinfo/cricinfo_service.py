@@ -29,6 +29,7 @@ class CricInfoService:
         match = self.match_repository.find_by_id(match_id)
         if match:
             match.set_state(LiveState())
+            match.set_current_status(MatchStatus.LIVE)
             print(f"Match {match_id} is now LIVE.")
 
     def process_ball_update(self, match_id, ball):
@@ -50,6 +51,7 @@ class CricInfoService:
         match = self.match_repository.find_by_id(match_id)
         if match:
             match.set_state(FinishedState())
+            match.set_current_status(MatchStatus.FINISHED)
             print(f"Match {match_id} has FINISHED.")
 
     def add_player(self, player_id, player_name, player_role):

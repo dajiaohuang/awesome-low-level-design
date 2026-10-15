@@ -19,6 +19,8 @@ class OrderService
 
         inventoryService.UpdateStockForOrder(orderItems);
 
-        return new Order(customer, orderItems, customer.GetShippingAddress(), cart.CalculateTotal());
+        var order = new Order(customer, orderItems, customer.GetShippingAddress(), cart.CalculateTotal());
+        order.AddObserver(inventoryService);
+        return order;
     }
 }

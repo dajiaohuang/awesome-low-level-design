@@ -3,11 +3,13 @@
 
 #include <vector>
 #include <string>
+#include <mutex>
 #include "Product.hpp"
 #include "Transaction.hpp"
 
 class VendingMachine {
 private:
+    mutable std::mutex mutex;
     std::string machineId;
     std::vector<Product*> products;
     std::vector<Transaction*> transactions;

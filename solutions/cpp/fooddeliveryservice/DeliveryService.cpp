@@ -35,8 +35,7 @@ bool DeliveryService::addItemToOrder(std::string orderId, std::string itemId, in
     MenuItem* item = order->getRestaurant()->findMenuItem(itemId);
     if (!item || !item->isAvailable()) return false;
     
-    order->addItem(item, quantity);
-    return true;
+    return order->addItem(item, quantity);
 }
 
 bool DeliveryService::updateOrderStatus(std::string orderId, OrderStatus status) {

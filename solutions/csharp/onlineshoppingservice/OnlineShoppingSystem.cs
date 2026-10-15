@@ -50,8 +50,12 @@ class OnlineShoppingSystem
 
     public void AddToCart(string customerId, string productId, int quantity)
     {
+        AddToCart(customerId, products[productId], quantity);
+    }
+
+    public void AddToCart(string customerId, Product product, int quantity)
+    {
         var customer = customers[customerId];
-        var product = products[productId];
         customer.GetAccount().GetCart().AddItem(product, quantity);
     }
 
@@ -77,29 +81,34 @@ class OnlineShoppingSystem
             return null;
         }
 
-        // 1. Process payment
-        bool paymentSuccess = paymentService.ProcessPayment(paymentStrategy, cart.CalculateTotal());
-        if (!paymentSuccess)
-        {
-            Console.WriteLine("Payment failed. Please try again.");
-            return null;
-        }
-
-        // 2. Create order and update inventory
+        // Reserve the complete cart before invoking the existing payment boundary.
+        Order order;
         try
         {
-            var order = orderService.CreateOrder(customer, cart);
-            orders[order.GetId()] = order;
-
-            // 3. Clear the cart
-            cart.ClearCart();
-
-            return order;
+            order = orderService.CreateOrder(customer, cart);
         }
         catch (Exception e)
         {
             Console.WriteLine($"Order placement failed: {e.Message}");
             return null;
         }
+
+        bool paymentSuccess = false;
+        try
+        {
+            paymentSuccess = paymentService.ProcessPayment(paymentStrategy, cart.CalculateTotal());
+        }
+        finally
+        {
+            if (!paymentSuccess) order.CancelOrder();
+        }
+        if (!paymentSuccess)
+        {
+            Console.WriteLine("Payment failed. Please try again.");
+            return null;
+        }
+        orders[order.GetId()] = order;
+        cart.ClearCart();
+        return order;
     }
 }

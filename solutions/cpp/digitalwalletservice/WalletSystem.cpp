@@ -12,10 +12,12 @@ WalletSystem::~WalletSystem() {
 }
 
 void WalletSystem::addUser(User* user) {
+    std::lock_guard<std::mutex> guard(mutex);
     users.push_back(user);
 }
 
 Wallet* WalletSystem::createWallet(std::string userId) {
+    std::lock_guard<std::mutex> guard(mutex);
     if (!findUser(userId)) return nullptr;
     
     std::string walletId = "W" + userId;
@@ -25,6 +27,7 @@ Wallet* WalletSystem::createWallet(std::string userId) {
 }
 
 bool WalletSystem::addMoney(std::string walletId, double amount, std::string source) {
+    std::lock_guard<std::mutex> guard(mutex);
     Wallet* wallet = findWallet(walletId);
     if (!wallet) return false;
     
@@ -45,6 +48,7 @@ bool WalletSystem::addMoney(std::string walletId, double amount, std::string sou
 }
 
 bool WalletSystem::withdrawMoney(std::string walletId, double amount, std::string destination) {
+    std::lock_guard<std::mutex> guard(mutex);
     Wallet* wallet = findWallet(walletId);
     if (!wallet) return false;
     
@@ -65,6 +69,7 @@ bool WalletSystem::withdrawMoney(std::string walletId, double amount, std::strin
 }
 
 bool WalletSystem::transferMoney(std::string fromWalletId, std::string toWalletId, double amount) {
+    std::lock_guard<std::mutex> guard(mutex);
     Wallet* fromWallet = findWallet(fromWalletId);
     Wallet* toWallet = findWallet(toWalletId);
     if (!fromWallet || !toWallet) return false;
@@ -100,6 +105,7 @@ bool WalletSystem::transferMoney(std::string fromWalletId, std::string toWalletI
 }
 
 void WalletSystem::displayUserInfo(std::string userId) const {
+    std::lock_guard<std::mutex> guard(mutex);
     User* user = findUser(userId);
     if (user) {
         user->displayInfo();
@@ -113,6 +119,7 @@ void WalletSystem::displayUserInfo(std::string userId) const {
 }
 
 void WalletSystem::displayWalletInfo(std::string walletId) const {
+    std::lock_guard<std::mutex> guard(mutex);
     Wallet* wallet = findWallet(walletId);
     if (wallet) {
         wallet->displayInfo();
@@ -121,6 +128,7 @@ void WalletSystem::displayWalletInfo(std::string walletId) const {
 }
 
 void WalletSystem::displayAllUsers() const {
+    std::lock_guard<std::mutex> guard(mutex);
     std::cout << "\nAll Users:" << std::endl;
     for (const auto& user : users) {
         user->displayInfo();
@@ -129,6 +137,7 @@ void WalletSystem::displayAllUsers() const {
 }
 
 void WalletSystem::displayAllWallets() const {
+    std::lock_guard<std::mutex> guard(mutex);
     std::cout << "\nAll Wallets:" << std::endl;
     for (const auto& wallet : wallets) {
         wallet->displayInfo();
@@ -156,7 +165,12 @@ std::string WalletSystem::generateTransactionId() {
 
 std::string WalletSystem::getCurrentTimestamp() const {
     auto now = std::time(nullptr);
-    auto tm = *std::localtime(&now);
+    std::tm tm{};
+#ifdef _WIN32
+    localtime_s(&tm, &now);
+#else
+    localtime_r(&now, &tm);
+#endif
     std::ostringstream oss;
     oss << std::put_time(&tm, "%Y-%m-%d %H:%M:%S");
     return oss.str();

@@ -10,6 +10,7 @@ class RideService {
 private:
     std::vector<User*> users;
     std::vector<Ride*> rides;
+    std::vector<User*> retiredUsers;
     int userIdCounter;
     int rideIdCounter;
 

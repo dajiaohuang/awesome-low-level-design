@@ -20,26 +20,31 @@ abstract class NoteDispenser : IDispenseChain
     {
         lock (dispenserLock)
         {
-            if (amount >= noteValue)
+            int maxNotes = Math.Min(amount / noteValue, numNotes);
+            for (int numToDispense = maxNotes; numToDispense >= 0; numToDispense--)
             {
-                int numToDispense = Math.Min(amount / noteValue, numNotes);
                 int remainingAmount = amount - (numToDispense * noteValue);
-
-                if (numToDispense > 0)
+                if (remainingAmount == 0)
                 {
-                    Console.WriteLine($"Dispensing {numToDispense} x ${noteValue} note(s)");
-                    numNotes -= numToDispense;
+                    CommitNotes(numToDispense);
+                    return;
                 }
-
-                if (remainingAmount > 0 && nextChain != null)
+                if (nextChain != null && nextChain.CanDispense(remainingAmount))
                 {
+                    CommitNotes(numToDispense);
                     nextChain.Dispense(remainingAmount);
+                    return;
                 }
             }
-            else if (nextChain != null)
-            {
-                nextChain.Dispense(amount);
-            }
+        }
+    }
+
+    private void CommitNotes(int numToDispense)
+    {
+        if (numToDispense > 0)
+        {
+            Console.WriteLine($"Dispensing {numToDispense} x ${noteValue} note(s)");
+            numNotes -= numToDispense;
         }
     }
 
@@ -50,13 +55,15 @@ abstract class NoteDispenser : IDispenseChain
             if (amount < 0) return false;
             if (amount == 0) return true;
 
-            int numToUse = Math.Min(amount / noteValue, numNotes);
-            int remainingAmount = amount - (numToUse * noteValue);
-
-            if (remainingAmount == 0) return true;
-            if (nextChain != null)
+            int maxNotes = Math.Min(amount / noteValue, numNotes);
+            for (int numToUse = maxNotes; numToUse >= 0; numToUse--)
             {
-                return nextChain.CanDispense(remainingAmount);
+                int remainingAmount = amount - (numToUse * noteValue);
+                if (remainingAmount == 0 ||
+                    (nextChain != null && nextChain.CanDispense(remainingAmount)))
+                {
+                    return true;
+                }
             }
             return false;
         }

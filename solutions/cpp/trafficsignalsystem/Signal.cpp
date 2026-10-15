@@ -23,10 +23,11 @@ void Signal::setDurations(int green, int yellow, int red) {
 void Signal::updateSignal(int timeElapsed) {
     if (!isWorking) return;
     
-    timeRemaining -= timeElapsed;
-    if (timeRemaining <= 0) {
+    while (timeElapsed >= timeRemaining) {
+        timeElapsed -= timeRemaining;
         switchColor();
     }
+    timeRemaining -= timeElapsed;
 }
 
 void Signal::switchColor() {

@@ -23,6 +23,8 @@ class FoodDeliveryService:
         self.delivery_agents: Dict[str, DeliveryAgent] = {}
         self.orders: Dict[str, Order] = {}
         self.assignment_strategy: Optional[DeliveryAssignmentStrategy] = None
+        self._delivery_assignment_lock = threading.Lock()
+        self._active_deliveries: Dict[str, Order] = {}
 
     @staticmethod
     def get_instance():
@@ -68,6 +70,13 @@ class FoodDeliveryService:
         if order is None:
             raise KeyError("Order not found.")
 
+        if new_status == OrderStatus.DELIVERED:
+            with self._delivery_assignment_lock:
+                agent = order.get_delivery_agent()
+                if agent is not None and self._active_deliveries.get(agent.get_id()) is order:
+                    del self._active_deliveries[agent.get_id()]
+                    agent.set_available(True)
+
         order.set_status(new_status)
 
         if new_status == OrderStatus.READY_FOR_PICKUP:
@@ -85,11 +94,14 @@ class FoodDeliveryService:
             print(f"FAILED: Order {order_id} could not be canceled. Its status is: {order.get_status().value}")
 
     def assign_delivery(self, order: Order):
-        available_agents = list(self.delivery_agents.values())
+        with self._delivery_assignment_lock:
+            available_agents = list(self.delivery_agents.values())
+            best_agent = self.assignment_strategy.find_agent(order, available_agents)
+            if best_agent is not None:
+                order.assign_delivery_agent(best_agent)
+                self._active_deliveries[best_agent.get_id()] = order
 
-        best_agent = self.assignment_strategy.find_agent(order, available_agents)
         if best_agent:
-            order.assign_delivery_agent(best_agent)
             distance = best_agent.get_current_location().distance_to(order.get_restaurant().get_address())
             print(f"Agent {best_agent.get_name()} (dist: {distance:.2f}) assigned to order {order.get_id()}.")
             order.set_status(OrderStatus.OUT_FOR_DELIVERY)

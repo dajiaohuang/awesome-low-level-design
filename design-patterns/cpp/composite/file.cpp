@@ -11,6 +11,6 @@ void File::printStructure(const std::string& indent) const {
     std::cout << indent << "- " << name << " (" << size << " KB)" << std::endl;
 }
 
-void File::delete() {
+void File::deleteItem() {
     std::cout << "Deleting file: " << name << std::endl;
 } 

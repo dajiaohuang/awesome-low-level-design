@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 from typing import List
-from .fitness_data import FitnessData
 from .fitness_data_observer import FitnessDataObserver
 
 

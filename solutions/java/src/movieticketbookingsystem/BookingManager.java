@@ -15,8 +15,13 @@ public class BookingManager {
     }
 
     public Optional<Booking> createBooking(User user, Show show, List<Seat> seats, PaymentStrategy paymentStrategy) {
-        // 1. Lock the seats
-        seatLockManager.lockSeats(show, seats, user.getId());
+        synchronized (show) {
+            return createBookingLocked(user, show, seats, paymentStrategy);
+        }
+    }
+
+    private Optional<Booking> createBookingLocked(User user, Show show, List<Seat> seats, PaymentStrategy paymentStrategy) {
+        if (!seatLockManager.lockSeats(show, seats, user.getId())) return Optional.empty();
 
         // 2. Calculate the total price
         double totalAmount = show.getPricingStrategy().calculatePrice(seats);
@@ -42,6 +47,7 @@ public class BookingManager {
 
             return Optional.of(booking);
         } else {
+            seatLockManager.unlockSeats(show, seats, user.getId());
             System.out.println("Payment failed. Please try again.");
             return Optional.empty();
         }

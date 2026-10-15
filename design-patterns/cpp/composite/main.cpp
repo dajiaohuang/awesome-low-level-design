@@ -25,7 +25,7 @@ int main() {
     std::cout << "\nTotal Size: " << home->getSize() << " KB" << std::endl;
 
     std::cout << "\n---- Deleting All ----" << std::endl;
-    home->delete();
+    home->deleteItem();
 
     return 0;
 } 

@@ -1,11 +1,14 @@
 import { DirectionEnum } from "./Direction";
 import GreenState from "./SignalState/GreenState";
+import RedState from "./SignalState/RedState";
 import SignalState from "./SignalState/SignalState";
 import TrafficLight from "./TrafficLight";
 
 export default class TrafficSignalController {
     private signals: Map<DirectionEnum, TrafficLight>;
     private signalDurations: Map<DirectionEnum, Map<String, number>>;
+    private pendingTimer: ReturnType<typeof setTimeout> | undefined;
+    private generation = 0;
 
     constructor(
         signals: Map<DirectionEnum, TrafficLight>,
@@ -18,6 +21,10 @@ export default class TrafficSignalController {
     start(startDirection: DirectionEnum) {
         const light = this.signals.get(startDirection);
         if (!light) return;
+        this.generation++;
+        if (this.pendingTimer !== undefined) clearTimeout(this.pendingTimer);
+        this.pendingTimer = undefined;
+        for (const signal of this.signals.values()) signal.setState(new RedState());
         light.setState(new GreenState());
         light.handle(this);
     }
@@ -28,7 +35,11 @@ export default class TrafficSignalController {
         nextState: SignalState,
         delaySeconds: number,
     ) {
-        setTimeout(() => {
+        if (this.pendingTimer !== undefined) clearTimeout(this.pendingTimer);
+        const generation = this.generation;
+        this.pendingTimer = setTimeout(() => {
+            if (generation !== this.generation) return;
+            this.pendingTimer = undefined;
             light.setState(nextState);
             light.handle(this); // Handle the light after state change
         }, delaySeconds * 1000);
@@ -51,10 +62,7 @@ export default class TrafficSignalController {
     }
 
     manualOverride(direction: DirectionEnum) {
-        // Immediately set the specified direction to GREEN and start its cycle
-        const light = this.signals.get(direction);
-        if (!light) return;
-        light.setState(new GreenState());
-        light.handle(this);
+        // Replace the owned timer chain and red-light conflicting directions.
+        this.start(direction);
     }
 }

@@ -7,14 +7,12 @@ class AuctionService
     private readonly ConcurrentDictionary<string, User> users;
     private readonly ConcurrentDictionary<string, Auction> auctions;
     private readonly List<Task> scheduledTasks;
-    private bool shutdown;
 
     private AuctionService()
     {
         users = new ConcurrentDictionary<string, User>();
         auctions = new ConcurrentDictionary<string, Auction>();
         scheduledTasks = new List<Task>();
-        shutdown = false;
     }
 
     public static AuctionService GetInstance()
@@ -56,10 +54,7 @@ class AuctionService
             Task scheduledTask = Task.Run(async () =>
             {
                 await Task.Delay(delay);
-                if (!shutdown)
-                {
-                    EndAuction(auction.GetId());
-                }
+                EndAuction(auction.GetId());
             });
             scheduledTasks.Add(scheduledTask);
         }
@@ -96,7 +91,6 @@ class AuctionService
 
     public void Shutdown()
     {
-        shutdown = true;
         Task.WaitAll(scheduledTasks.ToArray());
     }
 }

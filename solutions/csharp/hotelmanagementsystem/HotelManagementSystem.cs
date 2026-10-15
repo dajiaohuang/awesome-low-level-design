@@ -8,6 +8,7 @@ namespace HotelManagement
     public class HotelManagementSystem
     {
         private static HotelManagementSystem _instance;
+        private static readonly object instanceLock = new object();
         private readonly ConcurrentDictionary<string, Guest> _guests;
         private readonly ConcurrentDictionary<string, Room> _rooms;
         private readonly ConcurrentDictionary<string, Reservation> _reservations;
@@ -23,11 +24,14 @@ namespace HotelManagement
         {
             get
             {
-                if (_instance == null)
+                lock (instanceLock)
                 {
-                    _instance = new HotelManagementSystem();
+                    if (_instance == null)
+                    {
+                        _instance = new HotelManagementSystem();
+                    }
+                    return _instance;
                 }
-                return _instance;
             }
         }
 
@@ -103,6 +107,8 @@ namespace HotelManagement
                 if (_reservations.TryGetValue(reservationId, out var reservation) && reservation.Status == ReservationStatus.CONFIRMED)
                 {
                     var room = reservation.Room;
+                    if (room.Status != RoomStatus.OCCUPIED)
+                        throw new InvalidOperationException("Room is not occupied.");
                     var amount = room.Price * (reservation.CheckOutDate - reservation.CheckInDate).TotalDays;
                     if (payment.ProcessPayment(amount))
                     {

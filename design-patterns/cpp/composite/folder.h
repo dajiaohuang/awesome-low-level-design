@@ -10,7 +10,7 @@ public:
     void addItem(std::shared_ptr<FileSystemItem> item);
     int getSize() const override;
     void printStructure(const std::string& indent) const override;
-    void delete() override;
+    void deleteItem() override;
 
 private:
     std::string name;

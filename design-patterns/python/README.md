@@ -20,7 +20,6 @@ This directory contains Python implementations of various design patterns, follo
 - **Composite Pattern** - Compose objects into tree structures
 - **Decorator Pattern** - Add behavior to objects dynamically
 - **Facade Pattern** - Provide simplified interface to complex subsystem
-- **Flyweight Pattern** - Minimize memory usage with shared objects
 - **Proxy Pattern** - Provide placeholder/surrogate for another object
 
 ### Additional Behavioral Patterns
@@ -31,11 +30,16 @@ This directory contains Python implementations of various design patterns, follo
 - **Memento Pattern** - Capture and restore object state
 - **State Pattern** - Allow object to alter behavior when state changes
 - **Template Method Pattern** - Define skeleton of algorithm in base class
-- **Visitor Pattern** - Define new operations without changing classes
+
+## Incomplete Placeholders
+
+The Flyweight client/factory and Visitor implementation/demo are not implemented. Their placeholder files are retained, but they are not runnable examples and are not included in `all_patterns_demo.py`.
+
+The Mediator components work, but `mediator/mediator_app.py` is an empty scaffold. The organization Composite demo is also an empty scaffold; the aggregate runner uses the existing filesystem example at `composite/filesystem/file_explorer_app.py`.
 
 ## Running the Examples
 
-Each pattern directory contains demo files that can be run independently:
+Runnable examples include:
 
 ```bash
 # Run adapter pattern demo

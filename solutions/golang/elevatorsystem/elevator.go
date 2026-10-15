@@ -68,8 +68,12 @@ func (e *Elevator) Stop() {
 }
 
 func (e *Elevator) processRequest(request *Request) {
+	e.moveToFloor(request.SourceFloor)
+	e.moveToFloor(request.DestinationFloor)
+}
+
+func (e *Elevator) moveToFloor(endFloor int) {
 	startFloor := e.getCurrentFloor()
-	endFloor := request.DestinationFloor
 
 	if startFloor < endFloor {
 		e.currentDirection = DirectionUp

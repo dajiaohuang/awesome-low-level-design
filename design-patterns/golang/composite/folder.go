@@ -38,7 +38,7 @@ func (f *Folder) Add(item FileSystemItem) {
 // Remove removes an item from the folder
 func (f *Folder) Remove(item FileSystemItem) {
 	for i, child := range f.children {
-		if child.GetName() == item.GetName() {
+		if child == item {
 			f.children = append(f.children[:i], f.children[i+1:]...)
 			break
 		}

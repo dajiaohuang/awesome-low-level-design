@@ -1,6 +1,7 @@
 #include "BookingSystem.hpp"
 #include <iostream>
 #include <algorithm>
+#include <set>
 
 BookingSystem::BookingSystem() : bookingIdCounter(1) {}
 
@@ -11,30 +12,39 @@ BookingSystem::~BookingSystem() {
 }
 
 void BookingSystem::addMovie(Movie* movie) {
+    std::lock_guard<std::mutex> guard(mutex);
     movies.push_back(movie);
 }
 
 void BookingSystem::addTheater(Theater* theater) {
+    std::lock_guard<std::mutex> guard(mutex);
     theaters.push_back(theater);
 }
 
 Booking* BookingSystem::createBooking(std::string showId, std::string customerName,
                                     std::string customerPhone, const std::vector<int>& seats) {
+    std::lock_guard<std::mutex> guard(mutex);
     Show* show = findShow(showId);
     if (!show || show->getStatus() != ShowStatus::SCHEDULED) {
         return nullptr;
     }
     
-    // Check if all seats are available
+    // Check the complete acquisition batch before changing any seat.
+    std::set<int> selected;
     for (int seatNumber : seats) {
-        if (!show->isSeatAvailable(seatNumber)) {
+        if (!selected.insert(seatNumber).second || !show->isSeatAvailable(seatNumber)) {
             return nullptr;
         }
     }
     
-    // Book all seats
+    // Respect the existing producer's failure and roll back this batch only.
+    std::vector<int> acquired;
     for (int seatNumber : seats) {
-        show->bookSeat(seatNumber);
+        if (!show->bookSeat(seatNumber)) {
+            for (int booked : acquired) show->cancelSeatBooking(booked);
+            return nullptr;
+        }
+        acquired.push_back(seatNumber);
     }
     
     // Create booking
@@ -46,6 +56,7 @@ Booking* BookingSystem::createBooking(std::string showId, std::string customerNa
 }
 
 bool BookingSystem::cancelBooking(std::string bookingId) {
+    std::lock_guard<std::mutex> guard(mutex);
     Booking* booking = findBooking(bookingId);
     if (!booking || booking->getStatus() == BookingStatus::CANCELLED) {
         return false;
@@ -62,6 +73,7 @@ bool BookingSystem::cancelBooking(std::string bookingId) {
 }
 
 void BookingSystem::displayMovies() const {
+    std::lock_guard<std::mutex> guard(mutex);
     std::cout << "\nAvailable Movies:" << std::endl;
     for (const auto& movie : movies) {
         if (movie->isActive()) {
@@ -72,6 +84,7 @@ void BookingSystem::displayMovies() const {
 }
 
 void BookingSystem::displayTheaters() const {
+    std::lock_guard<std::mutex> guard(mutex);
     std::cout << "\nTheaters:" << std::endl;
     for (const auto& theater : theaters) {
         if (theater->isActive()) {
@@ -82,6 +95,7 @@ void BookingSystem::displayTheaters() const {
 }
 
 void BookingSystem::displayShows(std::string movieId) const {
+    std::lock_guard<std::mutex> guard(mutex);
     std::cout << "\nShows for Movie ID " << movieId << ":" << std::endl;
     for (const auto& theater : theaters) {
         for (const auto& show : theater->getShows()) {
@@ -94,6 +108,7 @@ void BookingSystem::displayShows(std::string movieId) const {
 }
 
 void BookingSystem::displayBooking(std::string bookingId) const {
+    std::lock_guard<std::mutex> guard(mutex);
     Booking* booking = findBooking(bookingId);
     if (booking) {
         booking->displayInfo();

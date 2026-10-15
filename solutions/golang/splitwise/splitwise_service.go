@@ -26,14 +26,20 @@ func GetSplitwiseService() *SplitwiseService {
 }
 
 func (s *SplitwiseService) AddUser(user *User) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	s.users[user.ID] = user
 }
 
 func (s *SplitwiseService) AddGroup(group *Group) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	s.groups[group.ID] = group
 }
 
 func (s *SplitwiseService) AddExpense(groupID string, expense *Expense) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	group, exists := s.groups[groupID]
 	if !exists {
 		return
@@ -75,6 +81,8 @@ func (s *SplitwiseService) updateBalance(user1, user2 *User, amount float64) {
 }
 
 func (s *SplitwiseService) SettleBalance(userID1, userID2 string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	user1, exists1 := s.users[userID1]
 	user2, exists2 := s.users[userID2]
 	if !exists1 || !exists2 {
@@ -85,11 +93,11 @@ func (s *SplitwiseService) SettleBalance(userID1, userID2 string) {
 	balance := user1.Balances[key]
 
 	if balance > 0 {
-		s.createTransaction(user1, user2, balance)
+		s.createTransaction(user2, user1, balance)
 		user1.Balances[key] = 0
 		user2.Balances[user2.ID+":"+user1.ID] = 0
 	} else if balance < 0 {
-		s.createTransaction(user2, user1, -balance)
+		s.createTransaction(user1, user2, -balance)
 		user1.Balances[key] = 0
 		user2.Balances[user2.ID+":"+user1.ID] = 0
 	}

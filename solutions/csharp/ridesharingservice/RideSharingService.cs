@@ -128,7 +128,10 @@ class RideSharingService
             throw new ArgumentException("Trip not found");
         }
         Console.WriteLine($"\n--- Trip {trip.Id} is ending ---");
-        trip.EndTrip();
+        if (!trip.EndTrip())
+        {
+            return;
+        }
 
         // Update statuses and history
         var driver = trip.Driver;

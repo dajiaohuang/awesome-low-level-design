@@ -57,7 +57,11 @@ class ParkingLot
             {
                 spot.ParkVehicle(vehicle);
                 var ticket = new ParkingTicket(vehicle, spot);
-                activeTickets.TryAdd(vehicle.GetLicenseNumber(), ticket);
+                if (!activeTickets.TryAdd(vehicle.GetLicenseNumber(), ticket))
+                {
+                    spot.UnparkVehicle();
+                    return null;
+                }
                 Console.WriteLine($"Vehicle {vehicle.GetLicenseNumber()} parked at spot {spot.GetSpotId()}");
                 return ticket;
             }

@@ -87,31 +87,24 @@ Design and implement a Splitwise System that allows users to split expenses amon
 ## Example Usage
 
 ```java
-SplitwiseService service = new SplitwiseService();
+SplitwiseService service = SplitwiseService.getInstance();
 
-// Create users
+// Create users and a group
 User user1 = service.addUser("John", "john@example.com");
 User user2 = service.addUser("Jane", "jane@example.com");
+Group group = service.addGroup("Trip to Paris", Arrays.asList(user1, user2));
 
-// Create a group
-Group group = service.createGroup("Trip to Paris");
-group.addMember(user1);
-group.addMember(user2);
+// Create an equal-split expense
+service.createExpense(new Expense.ExpenseBuilder()
+    .setDescription("Dinner")
+    .setAmount(100.0)
+    .setPaidBy(user1)
+    .setParticipants(Arrays.asList(user1, user2))
+    .setSplitStrategy(new EqualSplitStrategy()));
 
-// Add an expense
-Expense expense = service.addExpense(
-    "Dinner", 
-    100.0, 
-    user1, 
-    Arrays.asList(user1, user2), 
-    SplitType.EQUAL
-);
-
-// Get balances
-double balance = service.getBalance(user1, user2);
-
-// Settle expense
-service.settleExpense(user2, user1, 50.0);
+// View balances and settle a payment
+service.showBalanceSheet(user1.getId());
+service.settleUp(user2.getId(), user1.getId(), 50.0);
 ```
 
 ---

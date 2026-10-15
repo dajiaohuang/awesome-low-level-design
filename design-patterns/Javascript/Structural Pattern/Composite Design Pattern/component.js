@@ -2,7 +2,7 @@
 
 class Component {
   showDetails() {
-    throw new error("This method is overriden by subclasses");
+    throw new Error("This method is overriden by subclasses");
   }
 }
 

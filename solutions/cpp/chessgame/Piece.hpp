@@ -20,34 +20,21 @@ private:
     bool captured;
 
 public:
-    Piece(PieceType type, Color color, Position position)
-        : type(type), color(color), position(position), captured(false) {}
+    Piece(PieceType type, Color color, Position position);
     
     virtual ~Piece() = default;
     
-    PieceType getType() const { return type; }
-    Color getColor() const { return color; }
-    Position getPosition() const { return position; }
-    bool isCaptured() const { return captured; }
+    PieceType getType() const;
+    Color getColor() const;
+    Position getPosition() const;
+    bool isCaptured() const;
     
-    void setPosition(Position newPosition) { position = newPosition; }
-    void setCaptured(bool status) { captured = status; }
+    void setPosition(Position newPosition);
+    void setCaptured(bool status);
     
     virtual bool isValidMove(Position newPosition, Piece* board[8][8]) const = 0;
     
-    std::string getSymbol() const {
-        char symbol;
-        switch (type) {
-            case PieceType::KING: symbol = 'K'; break;
-            case PieceType::QUEEN: symbol = 'Q'; break;
-            case PieceType::BISHOP: symbol = 'B'; break;
-            case PieceType::KNIGHT: symbol = 'N'; break;
-            case PieceType::ROOK: symbol = 'R'; break;
-            case PieceType::PAWN: symbol = 'P'; break;
-            default: symbol = '?';
-        }
-        return std::string(1, color == Color::WHITE ? symbol : tolower(symbol));
-    }
+    std::string getSymbol() const;
 };
 
 #endif 

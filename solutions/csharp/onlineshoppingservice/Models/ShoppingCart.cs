@@ -4,19 +4,31 @@ class ShoppingCart
 
     public void AddItem(Product product, int quantity)
     {
-        if (items.ContainsKey(product.GetId()))
+        var existingItem = items.Values.FirstOrDefault(item =>
+            item.GetProduct().GetId() == product.GetId() &&
+            item.GetProduct().GetPrice() == product.GetPrice() &&
+            item.GetProduct().GetDescription() == product.GetDescription());
+        if (existingItem != null)
         {
-            items[product.GetId()].IncrementQuantity(quantity);
+            existingItem.IncrementQuantity(quantity);
+            return;
         }
-        else
-        {
-            items[product.GetId()] = new CartItem(product, quantity);
-        }
+
+        string cartKey = items.ContainsKey(product.GetId())
+            ? Guid.NewGuid().ToString()
+            : product.GetId();
+        items[cartKey] = new CartItem(product, quantity);
     }
 
     public void RemoveItem(string productId)
     {
-        items.Remove(productId);
+        foreach (string key in items
+                     .Where(entry => entry.Value.GetProduct().GetId() == productId)
+                     .Select(entry => entry.Key)
+                     .ToList())
+        {
+            items.Remove(key);
+        }
     }
 
     public Dictionary<string, CartItem> GetItems()

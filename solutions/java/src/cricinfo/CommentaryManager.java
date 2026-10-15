@@ -99,9 +99,9 @@ public class CommentaryManager {
         String batsmanName = ball.getFacedBy() != null ? ball.getFacedBy().getName() : "";
         String bowlerName = ball.getBowledBy() != null ? ball.getBowledBy().getName() : "";
 
-        // This handles cases where a template might have more or fewer placeholders
-        // and avoids exceptions.
-        return String.format(template.replace("%s", "%1$s"), batsmanName, bowlerName);
+        String participantName = key.equals("WICKET_" + WicketType.BOWLED) ||
+                key.equals("EXTRA_" + ExtraType.NO_BALL) ? bowlerName : batsmanName;
+        return String.format(template, participantName);
     }
 
     private String getEventKey(Ball ball) {

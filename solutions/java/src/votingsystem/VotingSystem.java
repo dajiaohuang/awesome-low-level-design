@@ -105,8 +105,7 @@ public class VotingSystem {
         votingLock.readLock().lock();
         try {
             for (Map.Entry<String, AtomicInteger> entry : voteCount.entrySet()) {
-                results.put(candidates.get(entry.getKey()).getName(), 
-                           entry.getValue().get());
+                results.put(entry.getKey(), entry.getValue().get());
             }
             return results;
         } finally {

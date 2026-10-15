@@ -31,8 +31,12 @@ func (t *Topic) RemoveSubscriber(subscriber Subscriber) {
 
 func (t *Topic) Publish(message *Message) {
 	t.mu.RLock()
-	defer t.mu.RUnlock()
+	subscribers := make([]Subscriber, 0, len(t.Subscribers))
 	for subscriber := range t.Subscribers {
+		subscribers = append(subscribers, subscriber)
+	}
+	t.mu.RUnlock()
+	for _, subscriber := range subscribers {
 		subscriber.OnMessage(message)
 	}
 }

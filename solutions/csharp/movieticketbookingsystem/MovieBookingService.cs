@@ -1,24 +1,26 @@
+using System.Collections.Concurrent;
+
 class MovieBookingService
 {
     private static volatile MovieBookingService instance;
     private static readonly object syncRoot = new object();
 
-    private readonly Dictionary<string, City> cities;
-    private readonly Dictionary<string, Cinema> cinemas;
-    private readonly Dictionary<string, Movie> movies;
-    private readonly Dictionary<string, User> users;
-    private readonly Dictionary<string, Show> shows;
+    private readonly ConcurrentDictionary<string, City> cities;
+    private readonly ConcurrentDictionary<string, Cinema> cinemas;
+    private readonly ConcurrentDictionary<string, Movie> movies;
+    private readonly ConcurrentDictionary<string, User> users;
+    private readonly ConcurrentDictionary<string, Show> shows;
 
     private readonly SeatLockManager seatLockManager;
     private readonly BookingManager bookingManager;
 
     private MovieBookingService()
     {
-        this.cities = new Dictionary<string, City>();
-        this.cinemas = new Dictionary<string, Cinema>();
-        this.movies = new Dictionary<string, Movie>();
-        this.users = new Dictionary<string, User>();
-        this.shows = new Dictionary<string, Show>();
+        this.cities = new ConcurrentDictionary<string, City>();
+        this.cinemas = new ConcurrentDictionary<string, Cinema>();
+        this.movies = new ConcurrentDictionary<string, Movie>();
+        this.users = new ConcurrentDictionary<string, User>();
+        this.shows = new ConcurrentDictionary<string, Show>();
 
         this.seatLockManager = new SeatLockManager();
         this.bookingManager = new BookingManager(seatLockManager);
@@ -107,7 +109,7 @@ class MovieBookingService
 
     private Cinema FindCinemaForShow(Show show)
     {
-        return cinemas.Values.FirstOrDefault(cinema => cinema.GetScreens().Contains(show.GetScreen()));
+        return cinemas.Values.FirstOrDefault(cinema => cinema.GetScreens().Contains(show.GetPhysicalScreen()));
     }
 
     public void Shutdown()

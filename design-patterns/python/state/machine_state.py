@@ -17,7 +17,7 @@ class MachineState(ABC):
         pass
     
     @abstractmethod
-    def dispense_item(self, machine: 'VendingMachine') -> None:
+    def dispense_item(self, machine: 'VendingMachine') -> bool:
         pass
     
     @abstractmethod

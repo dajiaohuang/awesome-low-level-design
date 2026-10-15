@@ -6,6 +6,7 @@ class Member : INotificationObserver
     private readonly Profile profile;
     private readonly HashSet<Member> connections = new HashSet<Member>();
     private readonly List<Notification> notifications = new List<Notification>();
+    private readonly object collectionLock = new object();
 
     public Member(string id, string name, string email, Profile profile)
     {
@@ -18,25 +19,42 @@ class Member : INotificationObserver
     public string GetId() { return id; }
     public string GetName() { return name; }
     public string GetEmail() { return email; }
-    public HashSet<Member> GetConnections() { return connections; }
+    public HashSet<Member> GetConnections()
+    {
+        lock (collectionLock)
+        {
+            return new HashSet<Member>(connections);
+        }
+    }
     public Profile GetProfile() { return profile; }
 
     public void AddConnection(Member member)
     {
-        connections.Add(member);
+        lock (collectionLock)
+        {
+            connections.Add(member);
+        }
     }
 
     public void DisplayProfile()
     {
         Console.WriteLine($"\n--- Profile for {name} ({email}) ---");
         profile.Display();
-        Console.WriteLine($"  Connections: {connections.Count}");
+        Console.WriteLine($"  Connections: {GetConnections().Count}");
     }
 
     public void ViewNotifications()
     {
         Console.WriteLine($"\n--- Notifications for {name} ---");
-        var unreadNotifications = notifications.Where(n => !n.IsRead()).ToList();
+        List<Notification> unreadNotifications;
+        lock (collectionLock)
+        {
+            unreadNotifications = notifications.Where(n => !n.IsRead()).ToList();
+            foreach (var notification in unreadNotifications)
+            {
+                notification.MarkAsRead();
+            }
+        }
 
         if (!unreadNotifications.Any())
         {
@@ -47,13 +65,15 @@ class Member : INotificationObserver
         foreach (var notification in unreadNotifications)
         {
             Console.WriteLine($"  - {notification.GetContent()}");
-            notification.MarkAsRead();
         }
     }
 
     public void Update(Notification notification)
     {
-        notifications.Add(notification);
+        lock (collectionLock)
+        {
+            notifications.Add(notification);
+        }
         Console.WriteLine($"Notification pushed to {name}: {notification.GetContent()}");
     }
 }

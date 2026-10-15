@@ -4,11 +4,7 @@
 User::User(std::string userId, std::string username, std::string email, std::string address)
     : userId(userId), username(username), email(email), address(address), active(true) {}
 
-User::~User() {
-    for (auto order : orders) {
-        delete order;
-    }
-}
+User::~User() = default; // ShoppingSystem owns the referenced orders.
 
 std::string User::getUserId() const { return userId; }
 std::string User::getUsername() const { return username; }

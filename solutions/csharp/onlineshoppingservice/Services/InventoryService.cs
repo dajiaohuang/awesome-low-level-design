@@ -1,7 +1,18 @@
-class InventoryService
+class InventoryService : IOrderObserver
 {
     private readonly Dictionary<string, int> stock = new Dictionary<string, int>();
     private readonly object lockObj = new object();
+    private readonly HashSet<string> restoredOrders = new HashSet<string>();
+
+    public void Update(Order order)
+    {
+        lock (lockObj)
+        {
+            if (order.GetStatus() == OrderStatus.CANCELLED && restoredOrders.Add(order.GetId()))
+                foreach (var item in order.GetItems())
+                    stock[item.GetProductId()] += item.GetQuantity();
+        }
+    }
 
     public void AddStock(Product product, int quantity)
     {
@@ -19,19 +30,19 @@ class InventoryService
     {
         lock (lockObj)
         {
-            // First, check if all items are in stock
-            foreach (var item in items)
+            // Decorated cart lines can share one canonical inventory product.
+            var quantities = items.GroupBy(item => item.GetProductId())
+                .ToDictionary(group => group.Key, group => group.Sum(item => item.GetQuantity()));
+            foreach (var entry in quantities)
             {
-                if (!stock.ContainsKey(item.GetProductId()) || stock[item.GetProductId()] < item.GetQuantity())
+                if (!stock.ContainsKey(entry.Key) || stock[entry.Key] < entry.Value)
                 {
-                    throw new OutOfStockException($"Not enough stock for product ID: {item.GetProductId()}");
+                    throw new OutOfStockException($"Not enough stock for product ID: {entry.Key}");
                 }
             }
-
-            // If all checks pass, deduct the stock
-            foreach (var item in items)
+            foreach (var entry in quantities)
             {
-                stock[item.GetProductId()] -= item.GetQuantity();
+                stock[entry.Key] -= entry.Value;
             }
         }
     }

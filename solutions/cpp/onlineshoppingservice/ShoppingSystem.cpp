@@ -2,29 +2,33 @@
 #include <iostream>
 #include <algorithm>
 
-ShoppingSystem::ShoppingSystem() : orderIdCounter(1) {}
+ShoppingSystem::ShoppingSystem() : orderIdCounter(1), userIdCounter(1), productIdCounter(1) {}
 
 ShoppingSystem::~ShoppingSystem() {
-    for (auto user : users) delete user;
-    for (auto product : products) delete product;
-    for (auto order : orders) delete order;
     for (auto& pair : userCarts) delete pair.second;
+    for (auto order : orders) delete order;
+    for (auto user : users) delete user;
+    for (auto user : retiredUsers) delete user;
+    for (auto product : products) delete product;
+    for (auto product : retiredProducts) delete product;
 }
 
 User* ShoppingSystem::registerUser(const std::string& username, const std::string& email, 
                                  const std::string& address) {
-    std::string userId = "U" + std::to_string(users.size() + 1);
+    std::lock_guard<std::mutex> guard(mutex);
+    std::string userId = "U" + std::to_string(userIdCounter++);
     User* user = new User(userId, username, email, address);
     users.push_back(user);
     return user;
 }
 
 void ShoppingSystem::removeUser(const std::string& userId) {
+    std::lock_guard<std::mutex> guard(mutex);
     auto it = std::find_if(users.begin(), users.end(),
         [userId](User* user) { return user->getUserId() == userId; });
     
     if (it != users.end()) {
-        delete *it;
+        retiredUsers.push_back(*it);
         users.erase(it);
         
         // Remove user's cart
@@ -38,29 +42,33 @@ void ShoppingSystem::removeUser(const std::string& userId) {
 
 Product* ShoppingSystem::addProduct(const std::string& name, const std::string& description,
                                   double price, int stockQuantity) {
-    std::string productId = "P" + std::to_string(products.size() + 1);
+    std::lock_guard<std::mutex> guard(mutex);
+    std::string productId = "P" + std::to_string(productIdCounter++);
     Product* product = new Product(productId, name, description, price, stockQuantity);
     products.push_back(product);
     return product;
 }
 
 void ShoppingSystem::removeProduct(const std::string& productId) {
+    std::lock_guard<std::mutex> guard(mutex);
     auto it = std::find_if(products.begin(), products.end(),
         [productId](Product* product) { return product->getProductId() == productId; });
     
     if (it != products.end()) {
-        delete *it;
+        retiredProducts.push_back(*it);
         products.erase(it);
     }
 }
 
 void ShoppingSystem::updateProductStock(const std::string& productId, int quantity) {
+    std::lock_guard<std::mutex> guard(mutex);
     if (Product* product = findProduct(productId)) {
         product->updateStock(quantity);
     }
 }
 
 bool ShoppingSystem::addToCart(const std::string& userId, const std::string& productId, int quantity) {
+    std::lock_guard<std::mutex> guard(mutex);
     User* user = findUser(userId);
     Product* product = findProduct(productId);
     
@@ -71,6 +79,7 @@ bool ShoppingSystem::addToCart(const std::string& userId, const std::string& pro
 }
 
 bool ShoppingSystem::updateCartItem(const std::string& userId, const std::string& productId, int quantity) {
+    std::lock_guard<std::mutex> guard(mutex);
     User* user = findUser(userId);
     Product* product = findProduct(productId);
     
@@ -81,6 +90,7 @@ bool ShoppingSystem::updateCartItem(const std::string& userId, const std::string
 }
 
 bool ShoppingSystem::removeFromCart(const std::string& userId, const std::string& productId) {
+    std::lock_guard<std::mutex> guard(mutex);
     User* user = findUser(userId);
     Product* product = findProduct(productId);
     
@@ -91,23 +101,31 @@ bool ShoppingSystem::removeFromCart(const std::string& userId, const std::string
 }
 
 void ShoppingSystem::clearCart(const std::string& userId) {
+    std::lock_guard<std::mutex> guard(mutex);
     if (Cart* cart = getCart(userId)) {
         cart->clear();
     }
 }
 
 Order* ShoppingSystem::placeOrder(const std::string& userId) {
+    std::lock_guard<std::mutex> guard(mutex);
     User* user = findUser(userId);
     Cart* cart = getCart(userId);
     
     if (!user || !cart || cart->getItems().empty()) return nullptr;
     
-    // Check stock availability and update stock
-    for (const auto& item : cart->getItems()) {
+    // Check the whole cart before any reservation, then retain rollback ownership.
+    for (const auto* item : cart->getItems()) {
         Product* product = item->getProduct();
-        if (!product->updateStock(-item->getQuantity())) {
+        if (!product->isAvailable() || product->getStockQuantity() < item->getQuantity()) return nullptr;
+    }
+    std::vector<CartItem*> acquired;
+    for (auto* item : cart->getItems()) {
+        if (!item->getProduct()->updateStock(-item->getQuantity())) {
+            for (auto* reserved : acquired) reserved->getProduct()->updateStock(reserved->getQuantity());
             return nullptr;
         }
+        acquired.push_back(item);
     }
     
     // Create order
@@ -123,6 +141,7 @@ Order* ShoppingSystem::placeOrder(const std::string& userId) {
 }
 
 bool ShoppingSystem::updateOrderStatus(const std::string& orderId, OrderStatus status) {
+    std::lock_guard<std::mutex> guard(mutex);
     if (Order* order = findOrder(orderId)) {
         order->setStatus(status);
         return true;
@@ -131,6 +150,7 @@ bool ShoppingSystem::updateOrderStatus(const std::string& orderId, OrderStatus s
 }
 
 void ShoppingSystem::displayProducts() const {
+    std::lock_guard<std::mutex> guard(mutex);
     std::cout << "\nAvailable Products:" << std::endl;
     for (const auto& product : products) {
         product->displayInfo();
@@ -139,6 +159,7 @@ void ShoppingSystem::displayProducts() const {
 }
 
 void ShoppingSystem::displayUsers() const {
+    std::lock_guard<std::mutex> guard(mutex);
     std::cout << "\nRegistered Users:" << std::endl;
     for (const auto& user : users) {
         user->displayInfo();
@@ -147,6 +168,7 @@ void ShoppingSystem::displayUsers() const {
 }
 
 void ShoppingSystem::displayCart(const std::string& userId) const {
+    std::lock_guard<std::mutex> guard(mutex);
     auto it = userCarts.find(userId);
     if (it != userCarts.end()) {
         it->second->displayInfo();
@@ -154,12 +176,14 @@ void ShoppingSystem::displayCart(const std::string& userId) const {
 }
 
 void ShoppingSystem::displayOrders(const std::string& userId) const {
+    std::lock_guard<std::mutex> guard(mutex);
     if (User* user = findUser(userId)) {
         user->displayOrders();
     }
 }
 
 void ShoppingSystem::displayAllOrders() const {
+    std::lock_guard<std::mutex> guard(mutex);
     std::cout << "\nAll Orders:" << std::endl;
     for (const auto& order : orders) {
         order->displayInfo();

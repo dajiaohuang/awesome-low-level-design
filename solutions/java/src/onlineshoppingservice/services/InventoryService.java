@@ -8,14 +8,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class InventoryService {
+public class InventoryService implements onlineshoppingservice.observer.OrderObserver {
     private final Map<String, Integer> stock; // productId -> quantity
+    private final java.util.Set<String> restoredOrders = new java.util.HashSet<>();
+
+    @Override
+    public synchronized void update(onlineshoppingservice.models.Order order) {
+        if (order.getStatus() == onlineshoppingservice.enums.OrderStatus.CANCELLED && restoredOrders.add(order.getId())) {
+            for (OrderLineItem item : order.getItems()) {
+                stock.compute(item.getProductId(), (id, quantity) -> quantity + item.getQuantity());
+            }
+        }
+    }
 
     public InventoryService() {
         this.stock = new ConcurrentHashMap<>();
     }
 
-    public void addStock(Product product, int quantity) {
+    public synchronized void addStock(Product product, int quantity) {
         stock.put(product.getId(), stock.getOrDefault(product.getId(), 0) + quantity);
     }
 

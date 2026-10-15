@@ -3,11 +3,13 @@
 
 #include <vector>
 #include <string>
+#include <mutex>
 #include "Task.hpp"
 #include "User.hpp"
 
 class TaskManager {
 private:
+    mutable std::mutex mutex;
     std::vector<Task*> tasks;
     std::vector<User*> users;
     int taskIdCounter;

@@ -7,9 +7,7 @@ User::User(std::string userId, std::string email, std::string password)
 
 User::~User() {
     delete profile;
-    for (auto post : posts) {
-        delete post;
-    }
+    // LinkedInManager owns the referenced posts.
 }
 
 std::string User::getUserId() const { return userId; }

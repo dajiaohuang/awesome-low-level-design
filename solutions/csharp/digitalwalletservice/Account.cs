@@ -12,6 +12,7 @@ namespace DigitalWallet
         private readonly Currency currency;
         private decimal balance;
         private readonly List<Transaction> transactions;
+        private readonly object accountLock = new object();
 
         public Account(string id, User user, string accountNumber, Currency currency)
         {
@@ -25,24 +26,33 @@ namespace DigitalWallet
 
         public void Deposit(decimal amount)
         {
-            balance = balance + amount;
+            lock (accountLock)
+            {
+                balance = balance + amount;
+            }
         }
 
         public void Withdraw(decimal amount)
         {
-            if (balance.CompareTo(amount) >= 0)
+            lock (accountLock)
             {
-                balance = balance - amount;
-            }
-            else
-            {
-                throw new InsufficientFundsException("Insufficient funds in the account.");
+                if (balance.CompareTo(amount) >= 0)
+                {
+                    balance = balance - amount;
+                }
+                else
+                {
+                    throw new InsufficientFundsException("Insufficient funds in the account.");
+                }
             }
         }
 
         public void AddTransaction(Transaction transaction)
         {
-            transactions.Add(transaction);
+            lock (accountLock)
+            {
+                transactions.Add(transaction);
+            }
         }
 
         public string GetId()
@@ -62,12 +72,18 @@ namespace DigitalWallet
 
         public decimal GetBalance()
         {
-            return balance;
+            lock (accountLock)
+            {
+                return balance;
+            }
         }
 
         public List<Transaction> GetTransactions()
         {
-            return transactions;
+            lock (accountLock)
+            {
+                return new List<Transaction>(transactions);
+            }
         }
     }
 }

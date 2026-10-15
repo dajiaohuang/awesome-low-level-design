@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <mutex>
 #include "Transaction.hpp"
 
 class Wallet {
@@ -11,6 +12,7 @@ private:
     std::string userId;
     double balance;
     std::vector<Transaction*> transactions;
+    mutable std::mutex mutex;
 
 public:
     Wallet(std::string walletId, std::string userId);

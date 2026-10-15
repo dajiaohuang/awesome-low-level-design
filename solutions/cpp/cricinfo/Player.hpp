@@ -3,6 +3,7 @@
 
 #include <string>
 #include "PlayerStats.hpp"
+#include <mutex>
 
 enum class PlayerType {
     BATSMAN,
@@ -17,6 +18,7 @@ private:
     std::string country;
     PlayerType type;
     PlayerStats stats;
+    mutable std::mutex statsMutex;
 
 public:
     Player(std::string playerId, std::string name, std::string country, PlayerType type);
@@ -25,7 +27,7 @@ public:
     std::string getName() const;
     std::string getCountry() const;
     PlayerType getType() const;
-    PlayerStats& getStats();
+    PlayerStats getStats() const;
     
     void updateStats(const PlayerStats& matchStats);
     void displayInfo() const;

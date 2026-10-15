@@ -12,6 +12,10 @@ class CashDispenser
     {
         lock (dispenserLock)
         {
+            if (!CanDispenseCash(amount))
+            {
+                throw new InvalidOperationException("Insufficient cash available in the ATM.");
+            }
             chain.Dispense(amount);
         }
     }

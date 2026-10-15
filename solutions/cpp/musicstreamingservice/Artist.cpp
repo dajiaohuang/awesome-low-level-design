@@ -5,11 +5,7 @@
 Artist::Artist(std::string artistId, std::string name, std::string bio)
     : artistId(artistId), name(name), bio(bio), active(true) {}
 
-Artist::~Artist() {
-    for (auto song : songs) {
-        delete song;
-    }
-}
+Artist::~Artist() = default; // MusicStreamingService owns the referenced songs.
 
 std::string Artist::getArtistId() const { return artistId; }
 std::string Artist::getName() const { return name; }
@@ -24,7 +20,6 @@ void Artist::addSong(Song* song) {
 void Artist::removeSong(Song* song) {
     auto it = std::find(songs.begin(), songs.end(), song);
     if (it != songs.end()) {
-        delete *it;
         songs.erase(it);
     }
 }

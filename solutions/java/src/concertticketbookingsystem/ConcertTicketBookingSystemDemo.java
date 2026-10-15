@@ -24,7 +24,7 @@ public class ConcertTicketBookingSystemDemo {
         User user2 = new User("U002", "Jane Smith", "jane@example.com");
 
         // Search concerts
-        List<Concert> searchResults = bookingSystem.searchConcerts("Artist 1", "Venue 1", LocalDateTime.now().plusDays(30));
+        List<Concert> searchResults = bookingSystem.searchConcerts("Artist 1", "Venue 1", concert1.getDateTime());
         System.out.println("Search Results:");
         for (Concert concert : searchResults) {
             System.out.println("Concert: " + concert.getArtist() + " at " + concert.getVenue());

@@ -78,10 +78,10 @@ public class StockBrokerageSystemDemo {
         system.cancelOrder(aliceCancelOrder);
         System.out.println("Order status after cancellation attempt: " + aliceCancelOrder.getStatus());
 
-        // Now try to cancel an already filled order
-        System.out.println("\n--- Trying to cancel an already FILLED order (State Pattern) ---");
+        // The simplified matcher executed ten shares and cancelled the other ten.
+        System.out.println("\n--- Checking the terminal partially-filled order (State Pattern) ---");
         System.out.println("Bob's sell order status: " + bobSellOrder.getStatus());
-        system.cancelOrder(bobSellOrder); // This should fail
+        system.cancelOrder(bobSellOrder); // The unfilled remainder was already cancelled.
         System.out.println("Bob's sell order status after cancel attempt: " + bobSellOrder.getStatus());
     }
 

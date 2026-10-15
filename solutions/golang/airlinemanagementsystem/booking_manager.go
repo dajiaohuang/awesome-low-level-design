@@ -31,6 +31,9 @@ func (bm *BookingManager) CreateBooking(flight *Flight, passenger *Passenger, se
 	bm.mu.Lock()
 	defer bm.mu.Unlock()
 
+	if !seat.Reserve() {
+		return nil
+	}
 	bookingNumber := bm.generateBookingNumber()
 	booking := NewBooking(bookingNumber, flight, passenger, seat, price)
 	bm.bookings[bookingNumber] = booking

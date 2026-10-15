@@ -61,8 +61,13 @@ func (bs *MovieTicketBookingSystem) BookTickets(user *User, show *Show, selected
 	bs.mu.Lock()
 	defer bs.mu.Unlock()
 
-	// Check seat availability
+	// A show seat may occur only once in this acquisition batch.
+	seen := make(map[string]bool, len(selectedSeats))
 	for _, seat := range selectedSeats {
+		if seen[seat.ID] {
+			return nil, fmt.Errorf("seat %s is requested more than once", seat.ID)
+		}
+		seen[seat.ID] = true
 		showSeat, exists := show.Seats[seat.ID]
 		if !exists || showSeat.GetStatus() != SeatStatusAvailable {
 			return nil, fmt.Errorf("seat %s is not available", seat.ID)

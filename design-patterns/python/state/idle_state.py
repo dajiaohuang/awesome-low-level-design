@@ -16,8 +16,9 @@ class IdleState(MachineState):
     def select_item(self, machine: 'VendingMachine') -> None:
         print("Please insert a coin first.")
     
-    def dispense_item(self, machine: 'VendingMachine') -> None:
+    def dispense_item(self, machine: 'VendingMachine') -> bool:
         print("Please insert a coin and select an item first.")
+        return False
     
     def cancel_transaction(self, machine: 'VendingMachine') -> None:
         print("No transaction to cancel.")

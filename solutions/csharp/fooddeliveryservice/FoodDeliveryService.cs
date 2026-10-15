@@ -8,6 +8,8 @@ class FoodDeliveryService
     private readonly ConcurrentDictionary<string, Restaurant> restaurants = new ConcurrentDictionary<string, Restaurant>();
     private readonly ConcurrentDictionary<string, DeliveryAgent> deliveryAgents = new ConcurrentDictionary<string, DeliveryAgent>();
     private readonly ConcurrentDictionary<string, Order> orders = new ConcurrentDictionary<string, Order>();
+    private readonly object deliveryAssignmentLock = new object();
+    private readonly Dictionary<string, Order> activeDeliveries = new Dictionary<string, Order>();
     private IDeliveryAssignmentStrategy assignmentStrategy;
 
     private FoodDeliveryService() { }
@@ -74,6 +76,19 @@ class FoodDeliveryService
             throw new KeyNotFoundException("Order not found.");
         }
 
+        if (newStatus == OrderStatus.DELIVERED)
+        {
+            lock (deliveryAssignmentLock)
+            {
+                DeliveryAgent agent = order.GetDeliveryAgent();
+                if (agent != null && activeDeliveries.TryGetValue(agent.GetId(), out Order activeOrder) && activeOrder == order)
+                {
+                    activeDeliveries.Remove(agent.GetId());
+                    agent.SetAvailable(true);
+                }
+            }
+        }
+
         order.SetStatus(newStatus);
 
         if (newStatus == OrderStatus.READY_FOR_PICKUP)
@@ -102,12 +117,20 @@ class FoodDeliveryService
 
     private void AssignDelivery(Order order)
     {
-        List<DeliveryAgent> availableAgents = deliveryAgents.Values.ToList();
+        DeliveryAgent agent;
+        lock (deliveryAssignmentLock)
+        {
+            List<DeliveryAgent> availableAgents = deliveryAgents.Values.ToList();
+            agent = assignmentStrategy.FindAgent(order, availableAgents);
+            if (agent != null)
+            {
+                order.AssignDeliveryAgent(agent);
+                activeDeliveries[agent.GetId()] = order;
+            }
+        }
 
-        DeliveryAgent agent = assignmentStrategy.FindAgent(order, availableAgents);
         if (agent != null)
         {
-            order.AssignDeliveryAgent(agent);
             double distance = agent.GetCurrentLocation().DistanceTo(order.GetRestaurant().GetAddress());
             Console.WriteLine($"Agent {agent.GetName()} (dist: {distance:F2}) assigned to order {order.GetId()}.");
             order.SetStatus(OrderStatus.OUT_FOR_DELIVERY);

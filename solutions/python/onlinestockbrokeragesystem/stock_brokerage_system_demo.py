@@ -79,10 +79,10 @@ class StockBrokerageSystemDemo:
         system.cancel_order(alice_cancel_order)
         print(f"Order status after cancellation attempt: {alice_cancel_order.get_status().value}")
 
-        # Now try to cancel an already filled order
-        print("\n--- Trying to cancel an already FILLED order (State Pattern) ---")
+        # The simplified exchange already canceled this order's unfilled remainder.
+        print("\n--- Trying to cancel the already-canceled remainder (State Pattern) ---")
         print(f"Bob's sell order status: {bob_sell_order.get_status().value}")
-        system.cancel_order(bob_sell_order)  # This should fail
+        system.cancel_order(bob_sell_order)  # No live remainder remains.
         print(f"Bob's sell order status after cancel attempt: {bob_sell_order.get_status().value}")
 
 if __name__ == "__main__":

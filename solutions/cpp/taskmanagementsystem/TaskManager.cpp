@@ -10,6 +10,7 @@ TaskManager::~TaskManager() {
 }
 
 User* TaskManager::registerUser(const std::string& username, const std::string& email) {
+    std::lock_guard<std::mutex> lock(mutex);
     std::string userId = generateUserId();
     User* user = new User(userId, username, email);
     users.push_back(user);
@@ -17,6 +18,7 @@ User* TaskManager::registerUser(const std::string& username, const std::string& 
 }
 
 void TaskManager::removeUser(const std::string& userId) {
+    std::lock_guard<std::mutex> lock(mutex);
     auto it = std::find_if(users.begin(), users.end(),
         [userId](User* user) { return user->getUserId() == userId; });
     
@@ -34,6 +36,7 @@ void TaskManager::removeUser(const std::string& userId) {
 
 Task* TaskManager::createTask(const std::string& title, const std::string& description,
                             TaskPriority priority) {
+    std::lock_guard<std::mutex> lock(mutex);
     std::string taskId = generateTaskId();
     Task* task = new Task(taskId, title, description, priority);
     tasks.push_back(task);
@@ -41,6 +44,7 @@ Task* TaskManager::createTask(const std::string& title, const std::string& descr
 }
 
 void TaskManager::removeTask(const std::string& taskId) {
+    std::lock_guard<std::mutex> lock(mutex);
     auto it = std::find_if(tasks.begin(), tasks.end(),
         [taskId](Task* task) { return task->getTaskId() == taskId; });
     
@@ -63,6 +67,7 @@ void TaskManager::removeTask(const std::string& taskId) {
 }
 
 bool TaskManager::assignTask(const std::string& taskId, const std::string& userId) {
+    std::lock_guard<std::mutex> lock(mutex);
     Task* task = findTask(taskId);
     User* user = findUser(userId);
     
@@ -81,6 +86,7 @@ bool TaskManager::assignTask(const std::string& taskId, const std::string& userI
 }
 
 bool TaskManager::updateTaskStatus(const std::string& taskId, TaskStatus status) {
+    std::lock_guard<std::mutex> lock(mutex);
     Task* task = findTask(taskId);
     if (!task) return false;
     
@@ -94,6 +100,7 @@ bool TaskManager::updateTaskStatus(const std::string& taskId, TaskStatus status)
 }
 
 bool TaskManager::addTaskDependency(const std::string& taskId, const std::string& dependencyId) {
+    std::lock_guard<std::mutex> lock(mutex);
     Task* task = findTask(taskId);
     Task* dependency = findTask(dependencyId);
     
@@ -104,6 +111,7 @@ bool TaskManager::addTaskDependency(const std::string& taskId, const std::string
 }
 
 bool TaskManager::addTaskComment(const std::string& taskId, const std::string& comment) {
+    std::lock_guard<std::mutex> lock(mutex);
     Task* task = findTask(taskId);
     if (!task) return false;
     
@@ -112,6 +120,7 @@ bool TaskManager::addTaskComment(const std::string& taskId, const std::string& c
 }
 
 void TaskManager::displayUserTasks(const std::string& userId) const {
+    std::lock_guard<std::mutex> lock(mutex);
     User* user = findUser(userId);
     if (!user) return;
     
@@ -124,6 +133,7 @@ void TaskManager::displayUserTasks(const std::string& userId) const {
 }
 
 void TaskManager::displayAllTasks() const {
+    std::lock_guard<std::mutex> lock(mutex);
     std::cout << "\nAll Tasks:" << std::endl;
     for (const auto& task : tasks) {
         task->displayInfo();
@@ -132,6 +142,7 @@ void TaskManager::displayAllTasks() const {
 }
 
 void TaskManager::displayAllUsers() const {
+    std::lock_guard<std::mutex> lock(mutex);
     std::cout << "\nAll Users:" << std::endl;
     for (const auto& user : users) {
         user->displayInfo();
@@ -140,6 +151,7 @@ void TaskManager::displayAllUsers() const {
 }
 
 std::vector<Task*> TaskManager::getTasksByStatus(TaskStatus status) const {
+    std::lock_guard<std::mutex> lock(mutex);
     std::vector<Task*> result;
     std::copy_if(tasks.begin(), tasks.end(), std::back_inserter(result),
         [status](Task* task) { return task->getStatus() == status; });
@@ -147,6 +159,7 @@ std::vector<Task*> TaskManager::getTasksByStatus(TaskStatus status) const {
 }
 
 std::vector<Task*> TaskManager::getTasksByPriority(TaskPriority priority) const {
+    std::lock_guard<std::mutex> lock(mutex);
     std::vector<Task*> result;
     std::copy_if(tasks.begin(), tasks.end(), std::back_inserter(result),
         [priority](Task* task) { return task->getPriority() == priority; });

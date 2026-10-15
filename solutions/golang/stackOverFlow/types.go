@@ -87,6 +87,10 @@ func NewUser(id, username, email string) *User {
 func (u *User) UpdateReputation(value int) {
 	u.mu.Lock()
 	defer u.mu.Unlock()
+	u.updateReputationLocked(value)
+}
+
+func (u *User) updateReputationLocked(value int) {
 	u.reputation += value
 	if u.reputation < 0 {
 		u.reputation = 0
@@ -103,21 +107,21 @@ func (u *User) AddQuestion(q *Question) {
 	u.mu.Lock()
 	defer u.mu.Unlock()
 	u.questions = append(u.questions, q)
-	u.UpdateReputation(QuestionReputation)
+	u.updateReputationLocked(QuestionReputation)
 }
 
 func (u *User) AddAnswer(a *Answer) {
 	u.mu.Lock()
 	defer u.mu.Unlock()
 	u.answers = append(u.answers, a)
-	u.UpdateReputation(AnswerReputation)
+	u.updateReputationLocked(AnswerReputation)
 }
 
 func (u *User) AddComment(c *Comment) {
 	u.mu.Lock()
 	defer u.mu.Unlock()
 	u.comments = append(u.comments, c)
-	u.UpdateReputation(CommentReputation)
+	u.updateReputationLocked(CommentReputation)
 }
 
 func (u *User) GetQuestions() []*Question {

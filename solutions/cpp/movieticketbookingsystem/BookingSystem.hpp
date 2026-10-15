@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <mutex>
 #include "Movie.hpp"
 #include "Theater.hpp"
 #include "Show.hpp"
@@ -14,6 +15,7 @@ private:
     std::vector<Theater*> theaters;
     std::vector<Booking*> bookings;
     int bookingIdCounter;
+    mutable std::mutex mutex;
 
 public:
     BookingSystem();

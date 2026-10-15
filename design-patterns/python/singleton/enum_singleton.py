@@ -8,7 +8,6 @@ class EnumSingleton(Enum):
     
     def __init__(self, value):
         print("EnumSingleton instance created")
-        self.value = value
     
     def get_message(self) -> str:
         return "Hello from EnumSingleton!"

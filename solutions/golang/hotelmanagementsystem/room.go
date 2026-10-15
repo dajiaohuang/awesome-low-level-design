@@ -44,6 +44,16 @@ func (r *Room) CheckIn() error {
 	return nil
 }
 
+func (r *Room) CancelBooking() error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if r.status != RoomStatusBooked && r.status != RoomStatusOccupied {
+		return fmt.Errorf("room has no booking to cancel")
+	}
+	r.status = RoomStatusAvailable
+	return nil
+}
+
 func (r *Room) CheckOut() error {
 	r.mu.Lock()
 	defer r.mu.Unlock()

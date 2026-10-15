@@ -29,10 +29,14 @@ ParkingLot::~ParkingLot() {
 }
 
 int ParkingLot::getCapacity() const { return capacity; }
-int ParkingLot::getAvailableSpots() const { return availableSpots; }
+int ParkingLot::getAvailableSpots() const {
+    std::lock_guard<std::mutex> lock(mutex);
+    return availableSpots;
+}
 
 bool ParkingLot::parkVehicle(Vehicle* vehicle) {
     if (!vehicle) return false;
+    std::lock_guard<std::mutex> lock(mutex);
     
     // Check if vehicle is already parked
     if (occupiedSpots.find(vehicle->getLicensePlate()) != occupiedSpots.end()) {
@@ -51,6 +55,7 @@ bool ParkingLot::parkVehicle(Vehicle* vehicle) {
 }
 
 Vehicle* ParkingLot::removeVehicle(const std::string& licensePlate) {
+    std::lock_guard<std::mutex> lock(mutex);
     auto it = occupiedSpots.find(licensePlate);
     if (it == occupiedSpots.end()) return nullptr;
     
@@ -64,11 +69,13 @@ Vehicle* ParkingLot::removeVehicle(const std::string& licensePlate) {
 }
 
 ParkingSpot* ParkingLot::findVehicle(const std::string& licensePlate) const {
+    std::lock_guard<std::mutex> lock(mutex);
     auto it = occupiedSpots.find(licensePlate);
     return it != occupiedSpots.end() ? it->second : nullptr;
 }
 
 void ParkingLot::displayInfo() const {
+    std::lock_guard<std::mutex> lock(mutex);
     std::cout << "\nParking Lot Status:" << std::endl;
     std::cout << "Total Capacity: " << capacity << std::endl;
     std::cout << "Available Spots: " << availableSpots << std::endl;
@@ -76,6 +83,7 @@ void ParkingLot::displayInfo() const {
 }
 
 void ParkingLot::displayOccupancy() const {
+    std::lock_guard<std::mutex> lock(mutex);
     std::cout << "\nDetailed Occupancy:" << std::endl;
     for (const auto& spot : spots) {
         spot->displayInfo();

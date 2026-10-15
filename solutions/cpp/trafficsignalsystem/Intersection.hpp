@@ -2,6 +2,7 @@
 #define INTERSECTION_HPP
 
 #include <vector>
+#include <cstddef>
 #include <string>
 #include "Signal.hpp"
 
@@ -10,6 +11,7 @@ private:
     std::string intersectionId;
     std::vector<Signal*> signals;
     bool isOperational;
+    std::size_t nextSignal = 0;
 
 public:
     Intersection(std::string intersectionId);

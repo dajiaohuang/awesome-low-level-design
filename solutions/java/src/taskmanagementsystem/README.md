@@ -69,14 +69,22 @@ Design and implement a Task Management System that allows users to create, assig
 ## Example Usage
 
 ```java
-TaskManager manager = new TaskManager();
-User alice = new User("Alice");
-User bob = new User("Bob");
+import java.time.LocalDate;
+import taskmanagementsystem.TaskManagementSystem;
+import taskmanagementsystem.enums.TaskPriority;
+import taskmanagementsystem.models.Comment;
+import taskmanagementsystem.models.Task;
+import taskmanagementsystem.models.User;
 
-Task task = manager.createTask("Implement login", "Add login functionality", TaskPriority.HIGH, alice);
-manager.assignTask(task.getId(), bob);
-manager.updateTaskStatus(task.getId(), TaskStatus.IN_PROGRESS);
-manager.addCommentToTask(task.getId(), new Comment("Started working on this", bob));
+TaskManagementSystem manager = TaskManagementSystem.getInstance();
+User alice = manager.createUser("Alice", "alice@example.com");
+User bob = manager.createUser("Bob", "bob@example.com");
+
+Task task = manager.createTask("Implement login", "Add login functionality",
+        LocalDate.now().plusDays(7), TaskPriority.HIGH, alice.getId());
+task.setAssignee(bob);
+task.startProgress();
+task.addComment(new Comment("Started working on this", bob));
 ```
 
 ---

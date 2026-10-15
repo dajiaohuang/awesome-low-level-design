@@ -41,8 +41,7 @@ class Idle extends PhoneState {
     console.log("Phone is idle...");
   }
   answer() {
-    console.log("Phone is answering...");
-    this.hangup();
+    console.log("No incoming call to answer.");
   }
   hangup() {
     console.log("Cannot hangup while idle");

@@ -6,5 +6,5 @@ public:
     virtual ~FileSystemItem() = default;
     virtual int getSize() const = 0;
     virtual void printStructure(const std::string& indent) const = 0;
-    virtual void delete() = 0;
+    virtual void deleteItem() = 0;
 }; 

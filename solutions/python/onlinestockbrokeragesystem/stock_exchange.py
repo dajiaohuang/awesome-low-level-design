@@ -2,7 +2,7 @@ from typing import Dict, List, Optional
 from order import Order
 from stock import Stock
 from enums import OrderType, OrderStatus
-from order_states import FilledState
+from order_states import FilledState, PartiallyFilledState
 import threading
 from collections import defaultdict
 
@@ -85,9 +85,14 @@ class StockExchange:
         print("--- Trade Complete ---")
 
     def _update_order_status(self, order: Order, quantity_traded: int) -> None:
-        # This is a simplified update logic. A real system would handle partial fills.
-        order.set_status(OrderStatus.FILLED)
-        order.set_state(FilledState())
+        # Keep the example's terminal fill-and-cancel model explicit.
+        if quantity_traded == order.get_quantity():
+            order.set_status(OrderStatus.FILLED)
+            order.set_state(FilledState())
+        else:
+            order.set_status(OrderStatus.PARTIALLY_FILLED)
+            order.set_state(PartiallyFilledState())
+            print(f"Executed {quantity_traded} shares; cancelled unfilled remainder of {order.get_quantity() - quantity_traded} shares.")
         stock_symbol = order.get_stock().get_symbol()
         
         # Remove from books

@@ -53,7 +53,7 @@ void Board::display() const {
 }
 
 void Board::reset() {
-    grid.resize(size, std::vector<char>(size, EMPTY));
+    grid.assign(size, std::vector<char>(size, EMPTY));
 }
 
 bool Board::checkRows(char symbol) const {

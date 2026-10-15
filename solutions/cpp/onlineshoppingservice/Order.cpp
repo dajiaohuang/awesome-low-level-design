@@ -1,4 +1,5 @@
 #include "Order.hpp"
+#include "User.hpp"
 #include <iostream>
 #include <iomanip>
 
@@ -26,13 +27,21 @@ User* Order::getUser() const { return user; }
 const std::vector<CartItem*>& Order::getItems() const { return items; }
 double Order::getTotalAmount() const { return totalAmount; }
 std::time_t Order::getOrderDate() const { return orderDate; }
-OrderStatus Order::getStatus() const { return status; }
+OrderStatus Order::getStatus() const { std::lock_guard<std::mutex> guard(mutex); return status; }
 
 void Order::setStatus(OrderStatus status) {
+    std::lock_guard<std::mutex> guard(mutex);
+    if (status == OrderStatus::CANCELLED && !stockRestored) {
+        for (const auto* item : items) {
+            item->getProduct()->updateStock(item->getQuantity());
+        }
+        stockRestored = true;
+    }
     this->status = status;
 }
 
 void Order::displayInfo() const {
+    std::lock_guard<std::mutex> guard(mutex);
     std::cout << "\nOrder Details:" << std::endl;
     std::cout << "Order ID: " << orderId << std::endl;
     std::cout << "Customer: " << user->getUsername() << std::endl;

@@ -52,7 +52,6 @@ func (rs *RentalSystem) SearchCars(make, model string, startDate, endDate time.T
 	for _, car := range rs.cars {
 		if strings.EqualFold(car.Make, make) &&
 			strings.EqualFold(car.Model, model) &&
-			car.IsAvailable() &&
 			rs.isCarAvailable(car, startDate, endDate) {
 			availableCars = append(availableCars, car)
 		}

@@ -61,15 +61,15 @@ public class Game {
             return;
         }
 
-        if (nextPosition == board.getSize()) {
-            player.setPosition(nextPosition);
+        int finalPosition = board.getFinalPosition(nextPosition);
+
+        if (finalPosition == board.getSize()) {
+            player.setPosition(finalPosition);
             this.winner = player;
             this.status = GameStatus.FINISHED;
             System.out.printf("Hooray! %s reached the final square %d and won!\n", player.getName(), board.getSize());
             return;
         }
-
-        int finalPosition = board.getFinalPosition(nextPosition);
 
         if (finalPosition > nextPosition) { // Ladder
             System.out.printf("Wow! %s found a ladder 🪜 at %d and climbed to %d.\n", player.getName(), nextPosition, finalPosition);

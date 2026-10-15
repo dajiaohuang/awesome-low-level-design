@@ -77,7 +77,7 @@ export default class StackOverflow {
   addComment(userId: string, commentable: Commentable, content: string) {
     const author = this.getUser(userId);
     const comment = new Comment(author, content);
-    commentable.addComment(new Comment(author, content));
+    commentable.addComment(comment);
     return comment;
   }
 

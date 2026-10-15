@@ -4,8 +4,8 @@
 LinkedInManager::LinkedInManager() : postIdCounter(1) {}
 
 LinkedInManager::~LinkedInManager() {
-    for (auto user : users) delete user;
     for (auto post : posts) delete post;
+    for (auto user : users) delete user;
 }
 
 void LinkedInManager::addUser(User* user) {

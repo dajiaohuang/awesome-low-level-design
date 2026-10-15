@@ -1,6 +1,7 @@
 package cricinfo;
 
 import cricinfo.enums.PlayerRole;
+import cricinfo.enums.MatchStatus;
 import cricinfo.entity.Ball;
 import cricinfo.entity.Match;
 import cricinfo.entity.Player;
@@ -46,6 +47,7 @@ public class CricInfoService {
     public void startMatch(String matchId) {
         matchRepository.findById(matchId).ifPresent(match -> {
             match.setState(new LiveState());
+            match.setCurrentStatus(MatchStatus.LIVE);
             System.out.printf("Match %s is now LIVE.%n", matchId);
         });
     }
@@ -65,6 +67,7 @@ public class CricInfoService {
     public void endMatch(String matchId) {
         matchRepository.findById(matchId).ifPresent(match -> {
             match.setState(new FinishedState());
+            match.setCurrentStatus(MatchStatus.FINISHED);
             System.out.printf("Match %s has FINISHED.%n", matchId);
         });
     }

@@ -89,11 +89,14 @@ class Auction
 
     public Bid GetHighestBid()
     {
-        if (bids.Count == 0)
+        lock (lockObject)
         {
-            return null;
+            if (bids.Count == 0)
+            {
+                return null;
+            }
+            return bids.Max();
         }
-        return bids.Max();
     }
 
     public bool IsActive()
@@ -121,7 +124,13 @@ class Auction
 
     public string GetId() { return id; }
     public string GetItemName() { return itemName; }
-    public List<Bid> GetBidHistory() { return new List<Bid>(bids); }
+    public List<Bid> GetBidHistory()
+    {
+        lock (lockObject)
+        {
+            return new List<Bid>(bids);
+        }
+    }
     public AuctionState GetState() { return state; }
     public Bid GetWinningBid() { return winningBid; }
 }

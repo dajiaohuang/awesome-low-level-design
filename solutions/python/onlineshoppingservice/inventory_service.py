@@ -26,3 +26,8 @@ class InventoryService:
             # If all checks pass, deduct the stock
             for item in items:
                 self.stock[item.get_product_id()] -= item.get_quantity()
+
+    def restore_stock_for_order(self, items: List[OrderLineItem]) -> None:
+        with self.lock:
+            for item in items:
+                self.stock[item.get_product_id()] += item.get_quantity()

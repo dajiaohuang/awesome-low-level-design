@@ -2,17 +2,18 @@
 #include <iostream>
 #include <algorithm>
 
-RestaurantSystem::RestaurantSystem() : orderIdCounter(1) {}
+RestaurantSystem::RestaurantSystem() : orderIdCounter(1), menuItemIdCounter(1) {}
 
 RestaurantSystem::~RestaurantSystem() {
-    for (auto item : menu) delete item;
-    for (auto table : tables) delete table;
     for (auto order : orders) delete order;
+    for (auto item : menu) delete item;
+    for (auto item : retiredMenu) delete item;
+    for (auto table : tables) delete table;
 }
 
 MenuItem* RestaurantSystem::addMenuItem(const std::string& name, const std::string& description,
                                       double price, Category category) {
-    std::string itemId = "ITEM" + std::to_string(menu.size() + 1);
+    std::string itemId = "ITEM" + std::to_string(menuItemIdCounter++);
     MenuItem* item = new MenuItem(itemId, name, description, price, category);
     menu.push_back(item);
     return item;
@@ -23,7 +24,7 @@ void RestaurantSystem::removeMenuItem(const std::string& itemId) {
         [itemId](MenuItem* item) { return item->getItemId() == itemId; });
     
     if (it != menu.end()) {
-        delete *it;
+        retiredMenu.push_back(*it);
         menu.erase(it);
     }
 }
@@ -64,8 +65,7 @@ bool RestaurantSystem::addToOrder(const std::string& orderId, const std::string&
     
     if (!order || !item) return false;
     
-    order->addItem(item, quantity);
-    return true;
+    return order->addItem(item, quantity);
 }
 
 bool RestaurantSystem::updateOrderItem(const std::string& orderId, const std::string& itemId, int quantity) {

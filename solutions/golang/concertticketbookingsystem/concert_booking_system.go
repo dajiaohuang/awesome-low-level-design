@@ -66,14 +66,11 @@ func (bs *ConcertTicketBookingSystem) BookTickets(user *User, concert *Concert, 
 	}
 
 	// Book seats
-	for _, seat := range seats {
+	for index, seat := range seats {
 		if err := seat.Book(); err != nil {
-			// Rollback previous bookings
-			for _, s := range seats {
-				if s == seat {
-					break
-				}
-				s.Release()
+			// Roll back precisely the successfully acquired occurrences.
+			for _, acquired := range seats[:index] {
+				acquired.Release()
 			}
 			return nil, err
 		}

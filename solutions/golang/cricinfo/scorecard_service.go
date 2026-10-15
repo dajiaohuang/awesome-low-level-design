@@ -33,6 +33,7 @@ func (ss *ScorecardService) CreateScorecard(match *Match) string {
 	scorecardID := ss.generateScorecardID(match.ID)
 	scorecard := NewScorecard(scorecardID, match)
 	ss.scorecards[scorecardID] = scorecard
+	match.Scorecard = scorecard
 	return scorecardID
 }
 

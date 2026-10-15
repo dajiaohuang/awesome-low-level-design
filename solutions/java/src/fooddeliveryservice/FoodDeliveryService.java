@@ -20,6 +20,8 @@ public class FoodDeliveryService {
     private final Map<String, DeliveryAgent> deliveryAgents = new ConcurrentHashMap<>();
     private final Map<String, Order> orders = new ConcurrentHashMap<>();
     private DeliveryAssignmentStrategy assignmentStrategy;
+    private final Object deliveryAssignmentLock = new Object();
+    private final Map<String, Order> activeDeliveries = new java.util.HashMap<>();
 
     private FoodDeliveryService() {}
 
@@ -74,6 +76,15 @@ public class FoodDeliveryService {
         if (order == null)
             throw new NoSuchElementException("Order not found.");
 
+        if (newStatus == OrderStatus.DELIVERED) {
+            synchronized (deliveryAssignmentLock) {
+                DeliveryAgent agent = order.getDeliveryAgent();
+                if (agent != null && activeDeliveries.get(agent.getId()) == order) {
+                    activeDeliveries.remove(agent.getId());
+                    agent.setAvailable(true);
+                }
+            }
+        }
         order.setStatus(newStatus);
 
         // If order is ready, find a delivery agent.
@@ -100,9 +111,16 @@ public class FoodDeliveryService {
     private void assignDelivery(Order order) {
         List<DeliveryAgent> availableAgents = new ArrayList<>(deliveryAgents.values());
 
-        assignmentStrategy.findAgent(order, availableAgents).ifPresentOrElse(
+        java.util.Optional<DeliveryAgent> selected;
+        synchronized (deliveryAssignmentLock) {
+            selected = assignmentStrategy.findAgent(order, availableAgents);
+            selected.ifPresent(agent -> {
+                order.assignDeliveryAgent(agent);
+                activeDeliveries.put(agent.getId(), order);
+            });
+        }
+        selected.ifPresentOrElse(
                 agent -> {
-                    order.assignDeliveryAgent(agent);
                     System.out.printf("Agent %s (dist: %.2f) assigned to order %s.\n",
                             agent.getName(),
                             agent.getCurrentLocation().distanceTo(order.getRestaurant().getAddress()),

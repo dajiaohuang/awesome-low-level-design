@@ -27,6 +27,8 @@ public class OrderService {
 
         inventoryService.updateStockForOrder(result);
 
-        return new Order(customer, result, customer.getShippingAddress(), cart.calculateTotal());
+        Order order = new Order(customer, result, customer.getShippingAddress(), cart.calculateTotal());
+        order.addObserver(inventoryService);
+        return order;
     }
 }

@@ -4,7 +4,8 @@ class RestaurantManagementSystemFacade
     private static readonly object lockObject = new object();
     private readonly Restaurant restaurant = Restaurant.GetInstance();
     private int orderIdCounter = 1;
-    private readonly Dictionary<int, Order> orders = new Dictionary<int, Order>();
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<int, Order> orders =
+        new System.Collections.Concurrent.ConcurrentDictionary<int, Order>();
 
     private RestaurantManagementSystemFacade() { }
 

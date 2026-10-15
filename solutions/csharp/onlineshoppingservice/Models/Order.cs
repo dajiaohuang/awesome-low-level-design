@@ -8,6 +8,7 @@ class Order : Subject
     private readonly DateTime orderDate;
     private OrderStatus status;
     private IOrderState currentState;
+    private readonly object stateLock = new object();
 
     public Order(Customer customer, List<OrderLineItem> items, Address shippingAddress, double totalAmount)
     {
@@ -22,17 +23,20 @@ class Order : Subject
         AddObserver(customer);
     }
 
-    public void ShipOrder() { currentState.Ship(this); }
-    public void DeliverOrder() { currentState.Deliver(this); }
-    public void CancelOrder() { currentState.Cancel(this); }
+    public void ShipOrder() { lock (stateLock) { currentState.Ship(this); } }
+    public void DeliverOrder() { lock (stateLock) { currentState.Deliver(this); } }
+    public void CancelOrder() { lock (stateLock) { currentState.Cancel(this); } }
 
     public string GetId() { return id; }
-    public OrderStatus GetStatus() { return status; }
-    public void SetState(IOrderState state) { currentState = state; }
+    public OrderStatus GetStatus() { lock (stateLock) { return status; } }
+    public void SetState(IOrderState state) { lock (stateLock) { currentState = state; } }
     public void SetStatus(OrderStatus status)
     {
-        this.status = status;
-        NotifyObservers(this);
+        lock (stateLock)
+        {
+            this.status = status;
+            NotifyObservers(this);
+        }
     }
     public List<OrderLineItem> GetItems() { return items; }
 }

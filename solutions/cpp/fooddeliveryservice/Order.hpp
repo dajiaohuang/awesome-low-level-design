@@ -36,7 +36,7 @@ public:
     double getTotalAmount() const;
     std::string getTimestamp() const;
     
-    void addItem(MenuItem* item, int quantity);
+    bool addItem(MenuItem* item, int quantity);
     void setStatus(OrderStatus status);
     void calculateTotal();
     void displayInfo() const;

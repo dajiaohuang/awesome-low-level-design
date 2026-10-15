@@ -29,6 +29,7 @@ public class Match {
         this.innings = new ArrayList<>();
         this.innings.add(new Innings(team1, team2)); // Start first innings
         this.currentState = new ScheduledState(); // Initial state
+        this.currentStatus = MatchStatus.SCHEDULED;
         this.resultMessage = "";
     }
 

@@ -14,9 +14,11 @@ func NewTextEditorClient() *TextEditorClient {
 
 // RenderText renders a text string using flyweight objects
 func (c *TextEditorClient) RenderText(text string, x, y int, fontFamily string, fontSize int, color string) {
-	for i, char := range text {
+	column := 0
+	for _, char := range text {
 		flyweight := c.factory.GetFlyweight(char, fontFamily, fontSize, color)
-		flyweight.Draw(x+i*fontSize, y)
+		flyweight.Draw(x+column*fontSize, y)
+		column++
 	}
 }
 

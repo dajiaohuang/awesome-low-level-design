@@ -11,6 +11,7 @@ SplitwiseSystem::~SplitwiseSystem() {
 }
 
 User* SplitwiseSystem::registerUser(const std::string& name, const std::string& email) {
+    std::lock_guard<std::recursive_mutex> guard(mutex);
     std::string userId = generateUserId();
     User* user = new User(userId, name, email);
     users.push_back(user);
@@ -18,6 +19,7 @@ User* SplitwiseSystem::registerUser(const std::string& name, const std::string& 
 }
 
 void SplitwiseSystem::removeUser(const std::string& userId) {
+    std::lock_guard<std::recursive_mutex> guard(mutex);
     auto it = std::find_if(users.begin(), users.end(),
         [userId](User* user) { return user->getUserId() == userId; });
     
@@ -31,6 +33,7 @@ Expense* SplitwiseSystem::addExpense(const std::string& description, double amou
                                    const std::string& paidBy,
                                    const std::vector<std::string>& participants,
                                    ExpenseType type) {
+    std::lock_guard<std::recursive_mutex> guard(mutex);
     if (!findUser(paidBy)) return nullptr;
     
     std::string expenseId = generateExpenseId();
@@ -46,6 +49,7 @@ Expense* SplitwiseSystem::addExpense(const std::string& description, double amou
 
 bool SplitwiseSystem::setExpenseShares(const std::string& expenseId,
                                      const std::map<std::string, double>& shares) {
+    std::lock_guard<std::recursive_mutex> guard(mutex);
     Expense* expense = findExpense(expenseId);
     if (!expense) return false;
     
@@ -61,27 +65,39 @@ bool SplitwiseSystem::setExpenseShares(const std::string& expenseId,
 }
 
 void SplitwiseSystem::settleExpense(const std::string& expenseId) {
+    std::lock_guard<std::recursive_mutex> guard(mutex);
     Expense* expense = findExpense(expenseId);
     if (!expense) return;
-    
+
     const std::string& paidBy = expense->getPaidBy();
     const auto& shares = expense->getShares();
-    
-    for (const auto& share : shares) {
-        if (share.first != paidBy) {
-            // Update balances for both users
-            User* payer = findUser(paidBy);
+    auto previous = appliedShares.find(expenseId);
+    if (previous != appliedShares.end()) {
+        User* payer = findUser(paidBy);
+        for (const auto& share : previous->second) {
+            if (share.first == paidBy) continue;
             User* participant = findUser(share.first);
-            
             if (payer && participant) {
-                payer->updateBalance(share.first, share.second);
-                participant->updateBalance(paidBy, -share.second);
+                payer->updateBalance(share.first, -share.second);
+                participant->updateBalance(paidBy, share.second);
             }
         }
     }
+
+    for (const auto& share : shares) {
+        if (share.first == paidBy) continue;
+        User* payer = findUser(paidBy);
+        User* participant = findUser(share.first);
+        if (payer && participant) {
+            payer->updateBalance(share.first, share.second);
+            participant->updateBalance(paidBy, -share.second);
+        }
+    }
+    appliedShares[expenseId] = shares;
 }
 
 void SplitwiseSystem::showBalance(const std::string& userId) const {
+    std::lock_guard<std::recursive_mutex> guard(mutex);
     User* user = findUser(userId);
     if (!user) return;
     
@@ -89,6 +105,7 @@ void SplitwiseSystem::showBalance(const std::string& userId) const {
 }
 
 void SplitwiseSystem::showAllBalances() const {
+    std::lock_guard<std::recursive_mutex> guard(mutex);
     std::cout << "\nAll Balances:" << std::endl;
     for (const auto& user : users) {
         user->displayBalances();
@@ -96,6 +113,7 @@ void SplitwiseSystem::showAllBalances() const {
 }
 
 void SplitwiseSystem::displayUsers() const {
+    std::lock_guard<std::recursive_mutex> guard(mutex);
     std::cout << "\nRegistered Users:" << std::endl;
     for (const auto& user : users) {
         user->displayInfo();
@@ -104,6 +122,7 @@ void SplitwiseSystem::displayUsers() const {
 }
 
 void SplitwiseSystem::displayExpenses() const {
+    std::lock_guard<std::recursive_mutex> guard(mutex);
     std::cout << "\nAll Expenses:" << std::endl;
     for (const auto& expense : expenses) {
         expense->displayInfo();
@@ -112,6 +131,7 @@ void SplitwiseSystem::displayExpenses() const {
 }
 
 void SplitwiseSystem::displayUserExpenses(const std::string& userId) const {
+    std::lock_guard<std::recursive_mutex> guard(mutex);
     User* user = findUser(userId);
     if (!user) return;
     

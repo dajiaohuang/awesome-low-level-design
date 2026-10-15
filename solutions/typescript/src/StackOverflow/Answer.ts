@@ -65,6 +65,11 @@ export default class Answer implements Votable, Commentable {
     this.author.updateReputation(ReputationTypeEnum.ANSWER_ACCEPTED);
   }
 
+  unmarkAsAccepted() {
+    this.isAccepted = false;
+    this.author.updateReputation(-ReputationTypeEnum.ANSWER_ACCEPTED);
+  }
+
   getId() {
     return this.id;
   }

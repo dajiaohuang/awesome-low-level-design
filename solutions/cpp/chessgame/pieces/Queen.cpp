@@ -10,6 +10,7 @@ bool Queen::isValidMove(Position newPosition, Piece* board[8][8]) const {
     Position currentPos = getPosition();
     int dx = newPosition.getX() - currentPos.getX();
     int dy = newPosition.getY() - currentPos.getY();
+    if (dx == 0 && dy == 0) return false;
     
     // Queen can move diagonally, horizontally, or vertically
     if (abs(dx) == abs(dy) || dx == 0 || dy == 0) {

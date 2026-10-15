@@ -11,6 +11,7 @@ enum class SignalColor {
 
 class Signal {
 private:
+    friend class Intersection;
     std::string signalId;
     SignalColor currentColor;
     int greenDuration;

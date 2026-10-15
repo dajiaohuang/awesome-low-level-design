@@ -16,13 +16,14 @@ public class SeatLockManager {
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     private static final long LOCK_TIMEOUT_MS = 500; // 0.5 seconds. In real world, timeout would be in minutes
 
-    public void lockSeats(Show show, List<Seat> seats, String userId) {
+    public boolean lockSeats(Show show, List<Seat> seats, String userId) {
         synchronized (show) { // Synchronize on the show to ensure atomicity for that specific show
+            if (new java.util.HashSet<>(seats).size() != seats.size()) return false;
             // Check if any of the requested seats are already locked or booked
             for (Seat seat : seats) {
                 if (seat.getStatus() != SeatStatus.AVAILABLE) {
                     System.out.println("Seat " + seat.getId() + " is not available.");
-                    return;
+                    return false;
                 }
             }
 
@@ -39,6 +40,7 @@ public class SeatLockManager {
             // Schedule a task to unlock the seats after a timeout
             scheduler.schedule(() -> unlockSeats(show, seats, userId), LOCK_TIMEOUT_MS, TimeUnit.MILLISECONDS);
             System.out.println("Locked seats: " + seats.stream().map(Seat::getId).toList() + " for user " + userId);
+            return true;
         }
     }
 

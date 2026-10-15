@@ -18,6 +18,9 @@ export default class FileLogAppender implements LogAppender {
 
     try {
       this.writer = fs.createWriteStream(filePath, { flags: "a" });
+      this.writer.on("error", (error: Error) => {
+        console.error("Failed to write logs to file, exception:", error);
+      });
     } catch (e) {
       console.error("Failed to create writer for file logs, exception:", e);
     }

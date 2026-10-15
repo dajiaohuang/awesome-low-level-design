@@ -7,18 +7,13 @@ type DoubleCheckedSingleton struct{}
 
 var (
 	doubleCheckedInstance *DoubleCheckedSingleton
-	dcMu                  sync.Mutex
+	dcOnce                sync.Once
 )
 
 // GetDoubleCheckedInstance returns the singleton instance
 func GetDoubleCheckedInstance() *DoubleCheckedSingleton {
-	if doubleCheckedInstance == nil {
-		dcMu.Lock()
-		defer dcMu.Unlock()
-
-		if doubleCheckedInstance == nil {
-			doubleCheckedInstance = &DoubleCheckedSingleton{}
-		}
-	}
+	dcOnce.Do(func() {
+		doubleCheckedInstance = &DoubleCheckedSingleton{}
+	})
 	return doubleCheckedInstance
 }

@@ -29,7 +29,11 @@ void SocialNetwork::removeUser(const std::string& userId) {
         // Remove user's posts
         posts.erase(
             std::remove_if(posts.begin(), posts.end(),
-                [userId](Post* post) { return post->getUserId() == userId; }),
+                [userId](Post* post) {
+                    if (post->getUserId() != userId) return false;
+                    delete post;
+                    return true;
+                }),
             posts.end()
         );
         

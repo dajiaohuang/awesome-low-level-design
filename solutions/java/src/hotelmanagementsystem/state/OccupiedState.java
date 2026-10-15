@@ -5,7 +5,7 @@ import hotelmanagementsystem.model.Room;
 public class OccupiedState implements RoomState {
     @Override
     public void book(Room room) {
-        System.out.println("Error: Room " + room.getRoomNumber() + " is already occupied.");
+        throw new IllegalStateException("Room " + room.getRoomNumber() + " is already occupied.");
     }
 
     @Override

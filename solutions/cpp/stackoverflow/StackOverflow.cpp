@@ -90,8 +90,10 @@ bool StackOverflow::acceptAnswer(const std::string& userId, const std::string& a
     Post* answer = findPost(answerId);
     if (!answer || answer->getType() != PostType::ANSWER) return false;
     
-    answer->setAccepted(true);
-    updateUserReputation(answer->getUserId(), 15);  // +15 for accepted answer
+    if (!answer->isAccepted()) {
+        answer->setAccepted(true);
+        updateUserReputation(answer->getUserId(), 15);  // Award only on transition
+    }
     return true;
 }
 

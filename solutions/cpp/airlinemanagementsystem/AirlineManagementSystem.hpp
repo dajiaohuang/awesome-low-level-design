@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <mutex>
 #include "Flight.hpp"
 #include "Passenger.hpp"
 #include "Booking.hpp"
@@ -13,6 +14,7 @@ private:
     std::vector<Passenger*> passengers;
     std::vector<Booking*> bookings;
     int bookingIdCounter;
+    mutable std::recursive_mutex mutex;
 
 public:
     AirlineManagementSystem();

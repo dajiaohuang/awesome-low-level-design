@@ -1,4 +1,5 @@
 import uuid
+import threading
 from user import User
 from account import Account
 from payment_method import PaymentMethod
@@ -13,6 +14,7 @@ class DigitalWallet:
         self.users = {}
         self.accounts = {}
         self.payment_methods = {}
+        self._transfer_lock = threading.Lock()
 
     @classmethod
     def get_instance(cls):
@@ -40,21 +42,25 @@ class DigitalWallet:
         return self.payment_methods.get(payment_method_id)
 
     def transfer_funds(self, source_account, destination_account, amount, currency):
-        if source_account.currency != currency:
-            amount = CurrencyConverter.convert(amount, currency, source_account.currency)
-        source_account.withdraw(amount)
+        with self._transfer_lock:
+            source_amount = amount
+            if source_account.currency != currency:
+                source_amount = CurrencyConverter.convert(amount, currency, source_account.currency)
 
-        if destination_account.currency != currency:
-            amount = CurrencyConverter.convert(amount, currency, destination_account.currency)
-        destination_account.deposit(amount)
+            destination_amount = amount
+            if destination_account.currency != currency:
+                destination_amount = CurrencyConverter.convert(amount, currency, destination_account.currency)
 
-        transaction_id = self._generate_transaction_id()
-        transaction = Transaction(transaction_id, source_account, destination_account, amount, currency)
-        source_account.add_transaction(transaction)
-        destination_account.add_transaction(transaction)
+            source_account.withdraw(source_amount)
+            destination_account.deposit(destination_amount)
+
+            transaction_id = self._generate_transaction_id()
+            transaction = Transaction(transaction_id, source_account, destination_account, amount, currency)
+            source_account.add_transaction(transaction)
+            destination_account.add_transaction(transaction)
 
     def get_transaction_history(self, account):
-        return account.transactions
+        return account.get_transactions()
 
     def _generate_transaction_id(self):
         return "TXN" + str(uuid.uuid4()).replace('-', '').upper()[:8]

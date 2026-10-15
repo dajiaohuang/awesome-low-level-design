@@ -22,6 +22,7 @@ private:
     std::string dueDate;
     std::string returnDate;
     double fine;
+    bool reservationActive;
 
 public:
     Transaction(std::string transactionId, Book* book, Member* member,
@@ -37,7 +38,10 @@ public:
     double getFine() const;
     
     void setReturnDate(std::string date);
+    void setDueDate(std::string date) { dueDate = date; }
     void setFine(double amount);
+    bool isReservationActive() const;
+    void fulfillReservation();
     void displayInfo() const;
 };
 

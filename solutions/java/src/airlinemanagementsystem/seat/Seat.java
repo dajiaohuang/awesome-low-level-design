@@ -15,11 +15,13 @@ public class Seat {
         return seatNumber;
     }
 
-    public void reserve() {
+    public synchronized boolean reserve() {
+        if (status != SeatStatus.AVAILABLE) return false;
         status = SeatStatus.RESERVED;
+        return true;
     }
 
-    public void release() {
+    public synchronized void release() {
         status = SeatStatus.AVAILABLE;
     }
 

@@ -4,17 +4,20 @@ class SeatLockManager
     private readonly object lockObj = new object();
     private const int LOCK_TIMEOUT_MS = 500; // 0.5 seconds
 
-    public void LockSeats(Show show, List<Seat> seats, string userId)
+    internal object SyncRoot => lockObj;
+
+    public bool LockSeats(Show show, List<Seat> seats, string userId)
     {
         lock (lockObj)
         {
+            if (seats.Distinct().Count() != seats.Count) return false;
             // Check if any of the requested seats are already locked or booked
             foreach (var seat in seats)
             {
                 if (seat.GetStatus() != SeatStatus.AVAILABLE)
                 {
                     Console.WriteLine($"Seat {seat.GetId()} is not available.");
-                    return;
+                    return false;
                 }
             }
 
@@ -38,6 +41,7 @@ class SeatLockManager
             Task.Delay(LOCK_TIMEOUT_MS).ContinueWith(_ => UnlockSeats(show, seats, userId));
 
             Console.WriteLine($"Locked seats: {string.Join(", ", seats.Select(s => s.GetId()))} for user {userId}");
+            return true;
         }
     }
 

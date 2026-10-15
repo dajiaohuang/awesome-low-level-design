@@ -34,7 +34,7 @@ public class ATMSystem {
         this.cashDispenser = new CashDispenser(c1);
     }
 
-    public static ATMSystem getInstance() {
+    public static synchronized ATMSystem getInstance() {
         if (INSTANCE == null) {
             INSTANCE = new ATMSystem();
         }

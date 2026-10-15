@@ -35,6 +35,10 @@ public class Inventory {
                 stock.put(ingredient, stock.get(ingredient) - quantity));
     }
 
+    public Map<Ingredient, Integer> getAllIngredients() {
+        return new java.util.HashMap<>(stock);
+    }
+
     public void printInventory() {
         System.out.println("--- Current Inventory ---");
         stock.forEach((key, value) -> System.out.println(key + ": " + value));

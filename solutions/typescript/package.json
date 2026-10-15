@@ -2,9 +2,9 @@
   "name": "nodejs-typescript",
   "version": "1.0.0",
   "description": "",
-  "main": "src/LLDRunner.ts",
+  "main": "src/lldrunner.ts",
   "scripts": {
-    "dev": "tsx src/LLDRunner.ts",
+    "dev": "tsx src/lldrunner.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

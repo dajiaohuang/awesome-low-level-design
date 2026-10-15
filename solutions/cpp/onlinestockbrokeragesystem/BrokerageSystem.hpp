@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 #include <string>
+#include <mutex>
 #include "User.hpp"
 #include "Stock.hpp"
 #include "Transaction.hpp"
@@ -11,9 +12,12 @@
 class BrokerageSystem {
 private:
     std::vector<User*> users;
+    std::vector<User*> retiredUsers;
     std::map<std::string, Stock*> stocks;  // symbol -> Stock*
     std::vector<Transaction*> transactions;
     int transactionIdCounter;
+    int userIdCounter;
+    mutable std::mutex mutex;
 
 public:
     BrokerageSystem();

@@ -12,19 +12,15 @@ class SeatLockManager:
         self.executor = ThreadPoolExecutor(max_workers=5)
         self.LOCK_TIMEOUT_SECONDS = 0.5  # 0.5 seconds. In real world, timeout would be in minutes
 
-    def lock_seats(self, show: Show, seats: List[Seat], user_id: str) -> None:
-        # Use a lock per show to ensure atomicity for that specific show
-        show_lock = getattr(show, '_lock', None)
-        if show_lock is None:
-            show._lock = threading.Lock()
-            show_lock = show._lock
-
-        with show_lock:
+    def lock_seats(self, show: Show, seats: List[Seat], user_id: str) -> bool:
+        with show._lock:
+            if len(set(seats)) != len(seats):
+                return False
             # Check if any of the requested seats are already locked or booked
             for seat in seats:
                 if seat.get_status() != SeatStatus.AVAILABLE:
                     print(f"Seat {seat.get_id()} is not available.")
-                    return
+                    return False
 
             # Lock the seats
             for seat in seats:
@@ -39,17 +35,14 @@ class SeatLockManager:
             # Schedule a task to unlock the seats after a timeout
             self.executor.submit(self._unlock_after_timeout, show, seats, user_id)
             print(f"Locked seats: {[seat.get_id() for seat in seats]} for user {user_id}")
+            return True
 
     def _unlock_after_timeout(self, show: Show, seats: List[Seat], user_id: str) -> None:
         time.sleep(self.LOCK_TIMEOUT_SECONDS)
         self.unlock_seats(show, seats, user_id)
 
     def unlock_seats(self, show: Show, seats: List[Seat], user_id: str) -> None:
-        show_lock = getattr(show, '_lock', None)
-        if show_lock is None:
-            return
-
-        with show_lock:
+        with show._lock:
             show_locks = self.locked_seats.get(show)
             if show_locks is not None:
                 for seat in seats:

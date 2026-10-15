@@ -16,7 +16,7 @@ func NewCharacterFlyweightFactory() *CharacterFlyweightFactory {
 
 // GetFlyweight returns a flyweight object for the given character properties
 func (f *CharacterFlyweightFactory) GetFlyweight(symbol rune, fontFamily string, fontSize int, color string) CharacterFlyweight {
-	key := fmt.Sprintf("%c-%d-%s", symbol, fontSize, color)
+	key := fmt.Sprintf("%c-%s-%d-%s", symbol, fontFamily, fontSize, color)
 	if _, exists := f.flyweightCache[key]; !exists {
 		f.flyweightCache[key] = NewCharacterGlyph(symbol, fontFamily, fontSize, color)
 	}

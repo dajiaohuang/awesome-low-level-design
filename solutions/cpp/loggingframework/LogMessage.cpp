@@ -7,7 +7,12 @@ LogMessage::LogMessage(LogLevel level, const std::string& message,
     : level(level), message(message), source(source) {
     // Get current timestamp
     auto now = std::time(nullptr);
-    auto tm = *std::localtime(&now);
+    std::tm tm{};
+#ifdef _WIN32
+    localtime_s(&tm, &now);
+#else
+    localtime_r(&now, &tm);
+#endif
     std::ostringstream oss;
     oss << std::put_time(&tm, "%Y-%m-%d %H:%M:%S");
     timestamp = oss.str();

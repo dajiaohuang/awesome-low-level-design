@@ -28,6 +28,7 @@ private:
     int minFloor;
     std::vector<bool> floorsToVisit;
     std::queue<Request> requests;
+    bool awaitingPickup = true;
 
 public:
     Elevator(int id, int maxFloor, int minFloor = 0);

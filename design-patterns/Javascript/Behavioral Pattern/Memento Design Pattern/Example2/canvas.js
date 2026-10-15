@@ -23,7 +23,7 @@ class DrawingCanvas {
 
   // Restore the canvas state from a memento
   restore(memento) {
-    this.shapes = memento.getState(); // Replace current shapes with the saved shapes
+    this.shapes = [...memento.getState()]; // Restore without exposing the saved snapshot to later edits
   }
 
   // Print all shapes (to simulate displaying them on the canvas)

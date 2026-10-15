@@ -16,7 +16,7 @@ class PaidState : IVendingMachineState
         Inventory inventory = Inventory.GetInstance();
         Coffee coffee = machine.GetSelectedCoffee();
 
-        if (!inventory.HasIngredients(coffee.GetRecipe()))
+        if (!inventory.DeductIngredients(coffee.GetRecipe()))
         {
             Console.WriteLine("Sorry, we are out of ingredients. Refunding your money.");
             Console.WriteLine($"Refunding {machine.GetMoneyInserted()}");
@@ -25,8 +25,7 @@ class PaidState : IVendingMachineState
             return;
         }
 
-        // Deduct ingredients and prepare coffee
-        inventory.DeductIngredients(coffee.GetRecipe());
+        // Prepare only after the inventory reservation succeeds.
         coffee.Prepare();
 
         // Calculate change

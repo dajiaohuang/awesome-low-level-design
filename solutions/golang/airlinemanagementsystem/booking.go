@@ -26,5 +26,8 @@ func NewBooking(bookingNumber string, flight *Flight, passenger *Passenger, seat
 func (b *Booking) Cancel() {
 	b.mu.Lock()
 	defer b.mu.Unlock()
-	b.Status = BookingStatusCancelled
+	if b.Status == BookingStatusConfirmed {
+		b.Status = BookingStatusCancelled
+		b.Seat.Release()
+	}
 }

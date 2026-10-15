@@ -6,6 +6,7 @@
 #include "Team.hpp"
 #include "PlayerStats.hpp"
 #include <map>
+#include <mutex>
 
 class Match {
 private:
@@ -17,6 +18,7 @@ private:
     std::string matchType;
     Team* winner;
     std::map<std::string, PlayerStats> playerPerformances;
+    mutable std::mutex performancesMutex;
 
 public:
     Match(std::string matchId, Team* team1, Team* team2, 

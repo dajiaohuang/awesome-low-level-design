@@ -22,6 +22,7 @@ public class FileAppender implements LogAppender {
 
     @Override
     public synchronized void append(LogMessage logMessage) {
+        if (writer == null) return;
         try {
             writer.write(formatter.format(logMessage) + "\n");
             writer.flush();
@@ -32,6 +33,7 @@ public class FileAppender implements LogAppender {
 
     @Override
     public void close() {
+        if (writer == null) return;
         try {
             writer.close();
         } catch (IOException e) {

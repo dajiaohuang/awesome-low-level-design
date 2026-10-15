@@ -14,9 +14,12 @@ public class MovingUpState implements ElevatorState {
         }
 
         Integer nextFloor = elevator.getUpRequests().first();
-        elevator.setCurrentFloor(elevator.getCurrentFloor() + 1);
+        int currentFloor = elevator.getCurrentFloor();
+        if (currentFloor < nextFloor) {
+            elevator.setCurrentFloor(currentFloor + 1);
+        }
 
-        if (elevator.getCurrentFloor() == nextFloor) {
+        if (elevator.getCurrentFloor() >= nextFloor) {
             System.out.println("Elevator " + elevator.getId() + " stopped at floor " + nextFloor);
             elevator.getUpRequests().pollFirst();
         }

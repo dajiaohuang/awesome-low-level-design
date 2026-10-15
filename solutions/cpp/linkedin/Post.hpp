@@ -3,7 +3,7 @@
 
 #include <string>
 #include <vector>
-#include "User.hpp"
+class User;
 
 enum class PostType {
     TEXT,

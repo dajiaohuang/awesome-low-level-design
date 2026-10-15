@@ -27,6 +27,14 @@ Booking* HotelManager::createBooking(std::string guestId, std::string roomNumber
         return nullptr;
     }
     
+    for (const auto* existing : bookings) {
+        if (existing->getRoom() == room &&
+            (existing->getStatus() == BookingStatus::CONFIRMED ||
+             existing->getStatus() == BookingStatus::CHECKED_IN)) {
+            return nullptr;
+        }
+    }
+
     Booking* booking = new Booking(generateBookingId(), guest, room,
                                  checkInDate, checkOutDate, numberOfNights);
     bookings.push_back(booking);
@@ -35,7 +43,8 @@ Booking* HotelManager::createBooking(std::string guestId, std::string roomNumber
 
 bool HotelManager::checkIn(std::string bookingId) {
     Booking* booking = findBooking(bookingId);
-    if (!booking || booking->getStatus() != BookingStatus::CONFIRMED) {
+    if (!booking || booking->getStatus() != BookingStatus::CONFIRMED ||
+        booking->getRoom()->getStatus() != RoomStatus::AVAILABLE) {
         return false;
     }
     

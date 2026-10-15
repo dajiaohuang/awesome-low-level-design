@@ -12,8 +12,13 @@ class BookingManager:
         self.seat_lock_manager = seat_lock_manager
 
     def create_booking(self, user: User, show: Show, seats: List[Seat], payment_strategy: PaymentStrategy) -> Optional[Booking]:
-        # 1. Lock the seats
-        self.seat_lock_manager.lock_seats(show, seats, user.get_id())
+        with show._lock:
+            return self._create_booking_locked(user, show, seats, payment_strategy)
+
+    def _create_booking_locked(self, user: User, show: Show, seats: List[Seat], payment_strategy: PaymentStrategy) -> Optional[Booking]:
+        # 1. Acquire the complete seat batch before any payment.
+        if not self.seat_lock_manager.lock_seats(show, seats, user.get_id()):
+            return None
 
         # 2. Calculate the total price
         total_amount = show.get_pricing_strategy().calculate_price(seats)
@@ -39,5 +44,6 @@ class BookingManager:
 
             return booking
         else:
+            self.seat_lock_manager.unlock_seats(show, seats, user.get_id())
             print("Payment failed. Please try again.")
             return None

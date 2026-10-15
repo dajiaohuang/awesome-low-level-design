@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings><EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <StartupObject>RestaurantOrdersTest</StartupObject>
+    <BaseIntermediateOutputPath>obj/restaurant/</BaseIntermediateOutputPath>
+    <OutputPath>bin/restaurant/</OutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../solutions/csharp/restaurantmanagementsystem/**/*.cs" Exclude="../../solutions/csharp/restaurantmanagementsystem/obj/**;../../solutions/csharp/restaurantmanagementsystem/bin/**" />
+    <Compile Include="RestaurantOrders.cs" />
+  </ItemGroup>
+</Project>

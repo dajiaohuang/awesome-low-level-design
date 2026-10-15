@@ -1,17 +1,17 @@
 public class ShoeManufacture {
 
-    static ShoeFactory shoeFactory;
     public static Shoe produceShoe(String shoeType)
     {
-        if(shoeType == "Formal")
+        ShoeFactory shoeFactory = null;
+        if ("Formal".equals(shoeType))
         {
             shoeFactory = new FormalShoeFactory();
         }
-        if(shoeType == "Sports")
+        else if ("Sports".equals(shoeType))
         {
             shoeFactory = new SportsShoeFactory();
         }
-        if(shoeType == "Casual")
+        else if ("Casual".equals(shoeType))
         {
             shoeFactory = new CasualShoeFactory();
         }

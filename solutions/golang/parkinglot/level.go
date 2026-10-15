@@ -1,6 +1,9 @@
 package parkinglot
 
+import "sync"
+
 type Level struct {
+	mu           sync.Mutex
 	floor        int
 	parkingSpots []*ParkingSpot
 }
@@ -23,6 +26,8 @@ func NewLevel(floor int, numSpots int) *Level {
 }
 
 func (l *Level) ParkVehicle(vehicle Vehicle) bool {
+	l.mu.Lock()
+	defer l.mu.Unlock()
 	for _, spot := range l.parkingSpots {
 		if spot.IsAvailable() && spot.GetVehicleType() == vehicle.GetType() {
 			spot.ParkVehicle(vehicle)
@@ -33,6 +38,8 @@ func (l *Level) ParkVehicle(vehicle Vehicle) bool {
 }
 
 func (l *Level) UnparkVehicle(vehicle Vehicle) bool {
+	l.mu.Lock()
+	defer l.mu.Unlock()
 	for _, spot := range l.parkingSpots {
 		if !spot.IsAvailable() && spot.GetParkedVehicle() == vehicle {
 			spot.UnparkVehicle()
@@ -43,6 +50,8 @@ func (l *Level) UnparkVehicle(vehicle Vehicle) bool {
 }
 
 func (l *Level) DisplayAvailability() {
+	l.mu.Lock()
+	defer l.mu.Unlock()
 	for _, spot := range l.parkingSpots {
 		status := "Available"
 		if !spot.IsAvailable() {

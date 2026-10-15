@@ -30,6 +30,13 @@ class FilledState(OrderState):
     def cancel(self, order: 'Order') -> None:
         print("Cannot cancel a filled order.")
 
+class PartiallyFilledState(OrderState):
+    def handle(self, order: 'Order') -> None:
+        print("Order was partially filled; its remaining quantity was cancelled.")
+
+    def cancel(self, order: 'Order') -> None:
+        print("The unfilled remainder is already cancelled.")
+
 class CancelledState(OrderState):
     def handle(self, order: 'Order') -> None:
         print("Order is cancelled.")

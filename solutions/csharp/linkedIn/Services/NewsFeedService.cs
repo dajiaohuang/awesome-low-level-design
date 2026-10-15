@@ -19,7 +19,7 @@ class NewsFeedService
     {
         lock (lockObj)
         {
-            return allPosts.TryGetValue(member.GetId(), out var posts) ? posts : new List<Post>();
+            return allPosts.TryGetValue(member.GetId(), out var posts) ? new List<Post>(posts) : new List<Post>();
         }
     }
 

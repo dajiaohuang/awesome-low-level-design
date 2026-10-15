@@ -8,9 +8,11 @@ namespace DigitalWallet
     public class DigitalWallet
     {
         private static DigitalWallet instance;
+        private static readonly object instanceLock = new object();
         private readonly ConcurrentDictionary<string, User> users;
         private readonly ConcurrentDictionary<string, Account> accounts;
         private readonly ConcurrentDictionary<string, PaymentMethod> paymentMethods;
+        private readonly object transferLock = new object();
 
         private DigitalWallet()
         {
@@ -21,11 +23,14 @@ namespace DigitalWallet
 
         public static DigitalWallet GetInstance()
         {
-            if (instance == null)
+            lock (instanceLock)
             {
-                instance = new DigitalWallet();
+                if (instance == null)
+                {
+                    instance = new DigitalWallet();
+                }
+                return instance;
             }
-            return instance;
         }
 
         public void CreateUser(User user)
@@ -61,22 +66,18 @@ namespace DigitalWallet
 
         public void TransferFunds(Account sourceAccount, Account destinationAccount, decimal amount, Currency currency)
         {
-            if (sourceAccount.GetCurrency() != currency)
+            lock (transferLock)
             {
-                amount = CurrencyConverter.Convert(amount, currency, sourceAccount.GetCurrency());
-            }
-            sourceAccount.Withdraw(amount);
+                decimal sourceAmount = CurrencyConverter.Convert(amount, currency, sourceAccount.GetCurrency());
+                decimal destinationAmount = CurrencyConverter.Convert(amount, currency, destinationAccount.GetCurrency());
+                sourceAccount.Withdraw(sourceAmount);
+                destinationAccount.Deposit(destinationAmount);
 
-            if (destinationAccount.GetCurrency() != currency)
-            {
-                amount = CurrencyConverter.Convert(amount, currency, destinationAccount.GetCurrency());
+                string transactionId = GenerateTransactionId();
+                Transaction transaction = new Transaction(transactionId, sourceAccount, destinationAccount, amount, currency);
+                sourceAccount.AddTransaction(transaction);
+                destinationAccount.AddTransaction(transaction);
             }
-            destinationAccount.Deposit(amount);
-
-            string transactionId = GenerateTransactionId();
-            Transaction transaction = new Transaction(transactionId, sourceAccount, destinationAccount, amount, currency);
-            sourceAccount.AddTransaction(transaction);
-            destinationAccount.AddTransaction(transaction);
         }
 
         public List<Transaction> GetTransactionHistory(Account account)

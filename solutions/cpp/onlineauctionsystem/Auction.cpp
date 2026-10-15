@@ -37,7 +37,7 @@ void Auction::start() {
 void Auction::end() {
     if (status == AuctionStatus::ACTIVE) {
         status = AuctionStatus::ENDED;
-        item->setStatus(ItemStatus::SOLD);
+        item->setStatus(winnerId.empty() ? ItemStatus::AVAILABLE : ItemStatus::SOLD);
     }
 }
 

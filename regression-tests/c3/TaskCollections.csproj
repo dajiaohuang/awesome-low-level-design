@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings><EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <StartupObject>TaskCollectionsTest</StartupObject>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../solutions/csharp/taskmanagementsystem/**/*.cs" Exclude="../../solutions/csharp/taskmanagementsystem/obj/**;../../solutions/csharp/taskmanagementsystem/bin/**" />
+    <Compile Include="TaskCollections.cs" />
+  </ItemGroup>
+</Project>

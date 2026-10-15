@@ -1,0 +1,3 @@
+package concertbookingsystem
+import("testing";"time")
+func TestRepeatedSeatRollback(t *testing.T){s:=GetBookingSystem();seats:=GenerateSeats(1);c:=NewConcert("C","Artist","Venue",time.Now().Add(time.Hour),seats);s.AddConcert(c);u:=NewUser("U","User","u@example.com");seat:=seats[0];if b,err:=s.BookTickets(u,c,[]*Seat{seat,seat});err==nil||b!=nil{t.Fatal("duplicate booking")};if seat.GetStatus()!=StatusAvailable{t.Fatal("failed batch stranded first occurrence")};b,err:=s.BookTickets(u,c,[]*Seat{seat});if err!=nil||b==nil{t.Fatal("normal booking",err)};s.CancelBooking(b.ID);if seat.GetStatus()!=StatusAvailable{t.Fatal("cancellation")}}

@@ -25,20 +25,34 @@ public class CourseOffering {
     public void addObserver(CourseOfferingObserver observer) { observers.add(observer); }
     private void notifyObservers() { observers.forEach(o -> o.onSpotAvailable(this)); }
 
-    public boolean isFull() { return registeredStudents.size() >= capacity; }
-    public void addStudent(Student student) { registeredStudents.add(student); student.enroll(this); }
-    public void addToWaitlist(Student student) { waitlistedStudents.add(student); }
+    public synchronized boolean isFull() { return registeredStudents.size() >= capacity; }
+    public synchronized void addStudent(Student student) { registeredStudents.add(student); student.enroll(this); }
+    public synchronized void addToWaitlist(Student student) { waitlistedStudents.add(student); }
+
+    public synchronized boolean registerOrWaitlist(Student student) {
+        if (isFull()) {
+            waitlistedStudents.add(student);
+            return false;
+        }
+        registeredStudents.add(student);
+        student.enroll(this);
+        return true;
+    }
 
     public void dropStudent(Student student) {
-        boolean wasFull = isFull();
-        registeredStudents.remove(student);
-        student.drop(this);
-        if (wasFull && !isFull()) {
+        boolean spotAvailable;
+        synchronized (this) {
+            boolean wasFull = isFull();
+            registeredStudents.remove(student);
+            student.drop(this);
+            spotAvailable = wasFull && !isFull();
+        }
+        if (spotAvailable) {
             notifyObservers();
         }
     }
 
-    public Optional<Student> getNextFromWaitlist() { return Optional.ofNullable(waitlistedStudents.poll()); }
+    public synchronized Optional<Student> getNextFromWaitlist() { return Optional.ofNullable(waitlistedStudents.poll()); }
     public String getId() { return id; }
     public Course getCourse() { return course; }
     public TimeSlot getTimeSlot() { return timeSlot; }

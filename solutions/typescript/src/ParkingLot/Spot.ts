@@ -4,7 +4,7 @@ import AbstractVehicle from "./Vehicle";
 class ParkingSpot {
   spotName: string;
   protected type: carType;
-  protected parkedCar: AbstractVehicle | null;
+  protected parkedCar: AbstractVehicle | null = null;
 
   constructor(spotName: string, type: carType) {
     this.spotName = spotName;

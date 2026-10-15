@@ -19,11 +19,17 @@ void Match::setWinner(Team* team) {
 }
 
 void Match::addPlayerPerformance(const std::string& playerId, const PlayerStats& stats) {
+    std::lock_guard<std::mutex> guard(performancesMutex);
     playerPerformances[playerId] = stats;
 }
 
 void Match::updateTeamStats() {
-    for (const auto& performance : playerPerformances) {
+    std::map<std::string, PlayerStats> performances;
+    {
+        std::lock_guard<std::mutex> guard(performancesMutex);
+        performances = playerPerformances;
+    }
+    for (const auto& performance : performances) {
         Player* player = team1->findPlayer(performance.first);
         if (!player) {
             player = team2->findPlayer(performance.first);

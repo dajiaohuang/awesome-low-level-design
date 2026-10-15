@@ -25,5 +25,11 @@ void Transaction::displayInfo() const {
     std::cout << "Quantity: " << quantity << std::endl;
     std::cout << "Amount: $" << std::fixed << std::setprecision(2) << amount << std::endl;
     std::cout << "Status: " << (successful ? "Successful" : "Failed") << std::endl;
-    std::cout << "Time: " << std::ctime(&timestamp);
+    char timestampBuffer[26];
+#ifdef _WIN32
+    ctime_s(timestampBuffer, sizeof timestampBuffer, &timestamp);
+#else
+    ctime_r(&timestamp, timestampBuffer);
+#endif
+    std::cout << "Time: " << timestampBuffer;
 } 

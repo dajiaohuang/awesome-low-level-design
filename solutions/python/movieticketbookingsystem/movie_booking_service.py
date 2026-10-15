@@ -93,7 +93,7 @@ class MovieBookingService:
         # This is inefficient. In a real system, shows would have a direct link to the cinema.
         # For this example, we traverse the cinema list.
         for cinema in self.cinemas.values():
-            if show.get_screen() in cinema.get_screens():
+            if show._physical_screen in cinema.get_screens():
                 return cinema
         return None
 

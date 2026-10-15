@@ -41,6 +41,7 @@ class CricInfoService
         if (match != null)
         {
             match.SetState(new LiveState());
+            match.SetCurrentStatus(MatchStatus.LIVE);
             Console.WriteLine($"Match {matchId} is now LIVE.");
         }
     }
@@ -69,6 +70,7 @@ class CricInfoService
         if (match != null)
         {
             match.SetState(new FinishedState());
+            match.SetCurrentStatus(MatchStatus.FINISHED);
             Console.WriteLine($"Match {matchId} has FINISHED.");
         }
     }

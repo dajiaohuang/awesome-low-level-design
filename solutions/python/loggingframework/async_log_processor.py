@@ -22,6 +22,4 @@ class AsyncLogProcessor:
 
     def stop(self):
         self.shutdown_flag = True
-        self.executor.shutdown(wait=True, timeout=2)
-        if not self.executor._shutdown:
-            print("Logger executor did not terminate in the specified time.", file=sys.stderr)
+        self.executor.shutdown(wait=True)

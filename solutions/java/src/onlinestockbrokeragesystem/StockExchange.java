@@ -6,6 +6,7 @@ import onlinestockbrokeragesystem.entities.Order;
 import onlinestockbrokeragesystem.entities.Stock;
 import onlinestockbrokeragesystem.entities.User;
 import onlinestockbrokeragesystem.state.FilledState;
+import onlinestockbrokeragesystem.state.PartiallyFilledState;
 
 import java.util.Comparator;
 import java.util.List;
@@ -97,9 +98,15 @@ public class StockExchange {
     }
 
     private void updateOrderStatus(Order order, int quantityTraded) {
-        // This is a simplified update logic. A real system would handle partial fills.
-        order.setStatus(OrderStatus.FILLED);
-        order.setState(new FilledState());
+        // Preserve the example's terminal fill-and-cancel model without claiming a full fill.
+        if (quantityTraded == order.getQuantity()) {
+            order.setStatus(OrderStatus.FILLED);
+            order.setState(new FilledState());
+        } else {
+            order.setStatus(OrderStatus.PARTIALLY_FILLED);
+            order.setState(new PartiallyFilledState());
+            System.out.printf("Executed %d shares; cancelled unfilled remainder of %d shares.%n", quantityTraded, order.getQuantity() - quantityTraded);
+        }
         String stockSymbol = order.getStock().getSymbol();
         // Remove from books
         if (buyOrders.get(stockSymbol) != null)

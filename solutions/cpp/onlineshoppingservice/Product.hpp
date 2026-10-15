@@ -2,6 +2,7 @@
 #define PRODUCT_HPP
 
 #include <string>
+#include <mutex>
 
 class Product {
 private:
@@ -11,6 +12,7 @@ private:
     double price;
     int stockQuantity;
     bool available;
+    mutable std::mutex mutex;
 
 public:
     Product(std::string productId, std::string name, std::string description, 

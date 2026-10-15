@@ -28,6 +28,7 @@ namespace AirlineManagementSystem
 
         public Booking CreateBooking(Flight flight, Passenger passenger, Seat seat, double price)
         {
+            if (!seat.Reserve()) return null;
             string bookingNumber = GenerateBookingNumber();
             var booking = new Booking(bookingNumber, flight, passenger, seat, price);
             lock (lockObject)

@@ -47,7 +47,7 @@ func (r *Restaurant) RemoveMenuItem(item *MenuItem) {
 func (r *Restaurant) GetMenu() []MenuItem {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	return r.menu
+	return append([]MenuItem(nil), r.menu...)
 }
 
 func (r *Restaurant) PlaceOrder(order *Order) {

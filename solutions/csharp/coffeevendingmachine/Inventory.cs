@@ -24,40 +24,55 @@ class Inventory
 
     public void AddStock(Ingredient ingredient, int quantity)
     {
-        if (stock.ContainsKey(ingredient))
-            stock[ingredient] += quantity;
-        else
-            stock[ingredient] = quantity;
+        lock (inventoryLock)
+        {
+            if (stock.ContainsKey(ingredient))
+                stock[ingredient] += quantity;
+            else
+                stock[ingredient] = quantity;
+        }
     }
 
     public bool HasIngredients(Dictionary<Ingredient, int> recipe)
     {
-        return recipe.All(pair => stock.GetValueOrDefault(pair.Key, 0) >= pair.Value);
+        lock (inventoryLock)
+        {
+            return HasIngredientsUnsafe(recipe);
+        }
     }
 
-    public void DeductIngredients(Dictionary<Ingredient, int> recipe)
+    public bool DeductIngredients(Dictionary<Ingredient, int> recipe)
     {
         lock (inventoryLock)
         {
-            if (!HasIngredients(recipe))
+            if (!HasIngredientsUnsafe(recipe))
             {
                 Console.WriteLine("Not enough ingredients to make coffee.");
-                return;
+                return false;
             }
             foreach (var pair in recipe)
             {
                 stock[pair.Key] -= pair.Value;
             }
+            return true;
         }
+    }
+
+    private bool HasIngredientsUnsafe(Dictionary<Ingredient, int> recipe)
+    {
+        return recipe.All(pair => stock.GetValueOrDefault(pair.Key, 0) >= pair.Value);
     }
 
     public void PrintInventory()
     {
-        Console.WriteLine("--- Current Inventory ---");
-        foreach (var pair in stock)
+        lock (inventoryLock)
         {
-            Console.WriteLine($"{pair.Key}: {pair.Value}");
+            Console.WriteLine("--- Current Inventory ---");
+            foreach (var pair in stock)
+            {
+                Console.WriteLine($"{pair.Key}: {pair.Value}");
+            }
+            Console.WriteLine("-------------------------");
         }
-        Console.WriteLine("-------------------------");
     }
 }

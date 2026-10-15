@@ -2,6 +2,7 @@ namespace AirlineManagementSystem
 {
     public class Seat
     {
+        private readonly object seatLock = new object();
         public string SeatNumber { get; }
         public SeatType Type { get; }
         public SeatStatus Status { get; private set; }
@@ -13,14 +14,22 @@ namespace AirlineManagementSystem
             Status = SeatStatus.AVAILABLE;
         }
 
-        public void Reserve()
+        public bool Reserve()
         {
-            Status = SeatStatus.RESERVED;
+            lock (seatLock)
+            {
+                if (Status != SeatStatus.AVAILABLE) return false;
+                Status = SeatStatus.RESERVED;
+                return true;
+            }
         }
 
         public void Release()
         {
-            Status = SeatStatus.AVAILABLE;
+            lock (seatLock)
+            {
+                Status = SeatStatus.AVAILABLE;
+            }
         }
     }
 }

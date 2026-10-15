@@ -63,12 +63,10 @@ Design and implement a Vending Machine system that allows users to select produc
 
 ```java
 VendingMachine machine = VendingMachine.getInstance();
-Product chips = machine.addProduct("Chips", 1.5, 10);
-machine.selectProduct(chips);
-machine.insertCoin(new Coin(1.0));
-machine.insertCoin(new Coin(0.5));
-machine.dispenseProduct();
-machine.returnChange();
+machine.addItem("A1", "Chips", 25, 10);
+machine.selectItem("A1");
+machine.insertCoin(Coin.QUARTER);
+machine.dispense(); // Dispenses the item; any remaining balance is returned as change.
 ```
 
 ---

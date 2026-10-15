@@ -27,5 +27,11 @@ void Transaction::displayInfo() const {
     std::cout << "Quantity: " << quantity << std::endl;
     std::cout << "Price per Share: $" << std::fixed << std::setprecision(2) << pricePerShare << std::endl;
     std::cout << "Total Amount: $" << std::fixed << std::setprecision(2) << totalAmount << std::endl;
-    std::cout << "Time: " << std::ctime(&timestamp);
+    char timestampBuffer[26];
+#ifdef _WIN32
+    ctime_s(timestampBuffer, sizeof timestampBuffer, &timestamp);
+#else
+    ctime_r(&timestamp, timestampBuffer);
+#endif
+    std::cout << "Time: " << timestampBuffer;
 } 

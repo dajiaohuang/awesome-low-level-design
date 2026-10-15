@@ -6,6 +6,7 @@ class Post : Subject
     private readonly DateTime createdAt;
     private readonly List<Like> likes = new List<Like>();
     private readonly List<Comment> comments = new List<Comment>();
+    private readonly object collectionLock = new object();
 
     public Post(Member author, string content)
     {
@@ -18,7 +19,10 @@ class Post : Subject
 
     public void AddLike(Member member)
     {
-        likes.Add(new Like(member));
+        lock (collectionLock)
+        {
+            likes.Add(new Like(member));
+        }
         string notificationContent = $"{member.GetName()} liked your post.";
         var notification = new Notification(author.GetId(), NotificationType.POST_LIKE, notificationContent);
         NotifyObservers(notification);
@@ -26,7 +30,10 @@ class Post : Subject
 
     public void AddComment(Member member, string text)
     {
-        comments.Add(new Comment(member, text));
+        lock (collectionLock)
+        {
+            comments.Add(new Comment(member, text));
+        }
         string notificationContent = $"{member.GetName()} commented on your post: \"{text}\"";
         var notification = new Notification(author.GetId(), NotificationType.POST_COMMENT, notificationContent);
         NotifyObservers(notification);
@@ -36,6 +43,19 @@ class Post : Subject
     public Member GetAuthor() { return author; }
     public string GetContent() { return content; }
     public DateTime GetCreatedAt() { return createdAt; }
-    public List<Like> GetLikes() { return likes; }
-    public List<Comment> GetComments() { return comments; }
+    public List<Like> GetLikes()
+    {
+        lock (collectionLock)
+        {
+            return new List<Like>(likes);
+        }
+    }
+
+    public List<Comment> GetComments()
+    {
+        lock (collectionLock)
+        {
+            return new List<Comment>(comments);
+        }
+    }
 }

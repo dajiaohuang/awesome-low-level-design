@@ -72,15 +72,15 @@ class Game:
             print(f"Oops, {player.get_name()} needs to land exactly on {self.board.get_size()}. Turn skipped.")
             return
         
-        if next_position == self.board.get_size():
-            player.set_position(next_position)
+        final_position = self.board.get_final_position(next_position)
+
+        if final_position == self.board.get_size():
+            player.set_position(final_position)
             self.winner = player
             self.status = GameStatus.FINISHED
             print(f"Hooray! {player.get_name()} reached the final square {self.board.get_size()} and won!")
             return
-        
-        final_position = self.board.get_final_position(next_position)
-        
+
         if final_position > next_position:  # Ladder
             print(f"Wow! {player.get_name()} found a ladder 🪜 at {next_position} and climbed to {final_position}.")
         elif final_position < next_position:  # Snake

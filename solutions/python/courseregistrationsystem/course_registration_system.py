@@ -3,12 +3,16 @@ from course import Course
 from student import Student
 from registration import Registration
 from datetime import datetime
+import threading
 
 class CourseRegistrationSystem:
     instance = None
     courses: Dict[str, Course] = {}
     students: Dict[int, Student] = {}
     registrations: List[Registration] = []
+
+    def __init__(self):
+        self._registration_lock = threading.Lock()
 
     @staticmethod
     def get_instance():
@@ -30,14 +34,15 @@ class CourseRegistrationSystem:
         return result
 
     def register_course(self, student: Student, course: Course) -> bool:
-        if course.get_enrolled_students() < course.get_max_capacity():
-            registration = Registration(student, course, datetime.now())
-            self.registrations.append(registration)
-            student.get_registered_courses().append(course)
-            course.set_enrolled_students(course.get_enrolled_students() + 1)
-            self._notify_observers(course)
-            return True
-        return False
+        with self._registration_lock:
+            if course.get_enrolled_students() < course.get_max_capacity():
+                registration = Registration(student, course, datetime.now())
+                self.registrations.append(registration)
+                student.get_registered_courses().append(course)
+                course.set_enrolled_students(course.get_enrolled_students() + 1)
+                self._notify_observers(course)
+                return True
+            return False
 
     def get_registered_courses(self, student: Student) -> List[Course]:
         return student.get_registered_courses()

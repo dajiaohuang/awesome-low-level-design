@@ -17,11 +17,13 @@ OrderStatus Order::getStatus() const { return status; }
 double Order::getTotalAmount() const { return totalAmount; }
 std::string Order::getTimestamp() const { return timestamp; }
 
-void Order::addItem(MenuItem* item, int quantity) {
+bool Order::addItem(MenuItem* item, int quantity) {
     if (item && quantity > 0) {
         items[item] = quantity;
         calculateTotal();
+        return true;
     }
+    return false;
 }
 
 void Order::setStatus(OrderStatus status) {

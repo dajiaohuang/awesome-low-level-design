@@ -110,7 +110,7 @@ class CoffeeVendingMachine {
   public showIngredients(): void {
     console.log("Ingredient Levels:");
     const ingredients = this.ingredientStore.getAllIngredients();
-    for (const [name, quantity] of Object.entries(ingredients)) {
+    for (const [name, quantity] of ingredients) {
       console.log(`${name}: ${quantity}`);
     }
   }

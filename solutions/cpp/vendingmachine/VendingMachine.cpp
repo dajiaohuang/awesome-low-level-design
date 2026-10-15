@@ -13,10 +13,11 @@ VendingMachine::~VendingMachine() {
 }
 
 std::string VendingMachine::getMachineId() const { return machineId; }
-double VendingMachine::getCashBalance() const { return cashBalance; }
-bool VendingMachine::isOperational() const { return operational; }
+double VendingMachine::getCashBalance() const { std::lock_guard<std::mutex> guard(mutex); return cashBalance; }
+bool VendingMachine::isOperational() const { std::lock_guard<std::mutex> guard(mutex); return operational; }
 
 Product* VendingMachine::addProduct(const std::string& name, double price, int quantity) {
+    std::lock_guard<std::mutex> guard(mutex);
     std::string productId = generateProductId();
     Product* product = new Product(productId, name, price, quantity);
     products.push_back(product);
@@ -24,6 +25,7 @@ Product* VendingMachine::addProduct(const std::string& name, double price, int q
 }
 
 void VendingMachine::removeProduct(const std::string& productId) {
+    std::lock_guard<std::mutex> guard(mutex);
     auto it = std::find_if(products.begin(), products.end(),
         [productId](Product* product) { return product->getProductId() == productId; });
     
@@ -34,6 +36,7 @@ void VendingMachine::removeProduct(const std::string& productId) {
 }
 
 bool VendingMachine::restockProduct(const std::string& productId, int quantity) {
+    std::lock_guard<std::mutex> guard(mutex);
     Product* product = findProduct(productId);
     if (!product) return false;
     
@@ -42,6 +45,7 @@ bool VendingMachine::restockProduct(const std::string& productId, int quantity) 
 }
 
 bool VendingMachine::updatePrice(const std::string& productId, double price) {
+    std::lock_guard<std::mutex> guard(mutex);
     Product* product = findProduct(productId);
     if (!product) return false;
     
@@ -50,6 +54,7 @@ bool VendingMachine::updatePrice(const std::string& productId, double price) {
 }
 
 Transaction* VendingMachine::purchaseProduct(const std::string& productId, int quantity, double payment) {
+    std::lock_guard<std::mutex> guard(mutex);
     if (!operational) return nullptr;
     
     Product* product = findProduct(productId);
@@ -65,6 +70,8 @@ Transaction* VendingMachine::purchaseProduct(const std::string& productId, int q
         cashBalance += totalCost;
         transaction->setSuccessful(true);
         transactions.push_back(transaction);
+        std::cout << "Returning change: $" << std::fixed << std::setprecision(2)
+                  << payment - totalCost << std::endl;
         return transaction;
     }
     
@@ -73,10 +80,12 @@ Transaction* VendingMachine::purchaseProduct(const std::string& productId, int q
 }
 
 void VendingMachine::addCash(double amount) {
+    std::lock_guard<std::mutex> guard(mutex);
     cashBalance += amount;
 }
 
 bool VendingMachine::withdrawCash(double amount) {
+    std::lock_guard<std::mutex> guard(mutex);
     if (amount <= cashBalance) {
         cashBalance -= amount;
         return true;
@@ -85,10 +94,12 @@ bool VendingMachine::withdrawCash(double amount) {
 }
 
 void VendingMachine::setOperational(bool status) {
+    std::lock_guard<std::mutex> guard(mutex);
     operational = status;
 }
 
 void VendingMachine::displayInventory() const {
+    std::lock_guard<std::mutex> guard(mutex);
     std::cout << "\nCurrent Inventory:" << std::endl;
     for (const auto& product : products) {
         product->displayInfo();
@@ -97,6 +108,7 @@ void VendingMachine::displayInventory() const {
 }
 
 void VendingMachine::displayTransactions() const {
+    std::lock_guard<std::mutex> guard(mutex);
     std::cout << "\nTransaction History:" << std::endl;
     for (const auto& transaction : transactions) {
         transaction->displayInfo();
@@ -105,6 +117,7 @@ void VendingMachine::displayTransactions() const {
 }
 
 void VendingMachine::displayMachineInfo() const {
+    std::lock_guard<std::mutex> guard(mutex);
     std::cout << "\nVending Machine Info:" << std::endl;
     std::cout << "ID: " << machineId << std::endl;
     std::cout << "Status: " << (operational ? "Operational" : "Out of Service") << std::endl;

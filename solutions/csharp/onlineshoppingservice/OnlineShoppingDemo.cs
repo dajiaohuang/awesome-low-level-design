@@ -37,7 +37,7 @@ public class OnlineShoppingDemo
 
         // Alice decides to gift-wrap the book (Decorator Pattern)
         var giftWrappedBook = new GiftWrapDecorator(book);
-        system.AddToCart(alice.GetId(), giftWrappedBook.GetId(), 1);
+        system.AddToCart(alice.GetId(), giftWrappedBook, 1);
         Console.WriteLine($"Alice added a gift-wrapped book. Original price: ${book.GetPrice():F2}, New price: ${giftWrappedBook.GetPrice():F2}");
 
         var aliceCart = system.GetCustomerCart(alice.GetId());

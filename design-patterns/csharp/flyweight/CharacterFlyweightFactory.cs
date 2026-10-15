@@ -9,7 +9,7 @@ namespace Flyweight
 
         public static ICharacterFlyweight GetFlyweight(char symbol, string fontFamily, int fontSize, string color)
         {
-            string key = $"{symbol}-{fontSize}-{color}";
+            string key = $"{symbol}-{fontFamily}-{fontSize}-{color}";
             if (!flyweightCache.ContainsKey(key))
             {
                 flyweightCache[key] = new CharacterGlyph(symbol, fontFamily, fontSize, color);

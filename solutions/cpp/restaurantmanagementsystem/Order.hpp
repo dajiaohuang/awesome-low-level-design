@@ -35,7 +35,7 @@ public:
     std::time_t getOrderTime() const;
     OrderStatus getStatus() const;
     
-    void addItem(MenuItem* menuItem, int quantity);
+    bool addItem(MenuItem* menuItem, int quantity);
     void removeItem(const std::string& itemId);
     void updateItemQuantity(const std::string& itemId, int quantity);
     void setStatus(OrderStatus status);

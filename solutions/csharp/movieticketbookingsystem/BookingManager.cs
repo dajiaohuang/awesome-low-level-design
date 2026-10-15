@@ -9,8 +9,15 @@ class BookingManager
 
     public Booking CreateBooking(User user, Show show, List<Seat> seats, IPaymentStrategy paymentStrategy)
     {
-        // 1. Lock the seats
-        seatLockManager.LockSeats(show, seats, user.GetId());
+        lock (seatLockManager.SyncRoot)
+        {
+            return CreateBookingLocked(user, show, seats, paymentStrategy);
+        }
+    }
+
+    private Booking CreateBookingLocked(User user, Show show, List<Seat> seats, IPaymentStrategy paymentStrategy)
+    {
+        if (!seatLockManager.LockSeats(show, seats, user.GetId())) return null;
 
         // 2. Calculate the total price
         double totalAmount = show.GetPricingStrategy().CalculatePrice(seats);
@@ -39,6 +46,7 @@ class BookingManager
         }
         else
         {
+            seatLockManager.UnlockSeats(show, seats, user.GetId());
             Console.WriteLine("Payment failed. Please try again.");
             return null;
         }

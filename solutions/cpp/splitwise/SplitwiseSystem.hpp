@@ -3,6 +3,8 @@
 
 #include <vector>
 #include <string>
+#include <map>
+#include <mutex>
 #include "User.hpp"
 #include "Expense.hpp"
 
@@ -12,6 +14,8 @@ private:
     std::vector<Expense*> expenses;
     int userIdCounter;
     int expenseIdCounter;
+    std::map<std::string, std::map<std::string, double>> appliedShares;
+    mutable std::recursive_mutex mutex;
 
 public:
     SplitwiseSystem();

@@ -23,8 +23,9 @@ class ItemSelectedState(MachineState):
             from .has_money_state import HasMoneyState
             machine.set_state(HasMoneyState())
     
-    def dispense_item(self, machine: 'VendingMachine') -> None:
+    def dispense_item(self, machine: 'VendingMachine') -> bool:
         print("Please select an item first.")
+        return False
     
     def cancel_transaction(self, machine: 'VendingMachine') -> None:
         print("Transaction cancelled. Returning money.")

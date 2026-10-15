@@ -1,7 +1,9 @@
+import java.util.Stack;
+
 public class SetTemperatureCommand implements Command {
     private final Thermostat thermostat;
     private final int newTemperature;
-    private int previousTemperature;
+    private final Stack<Integer> previousTemperatures = new Stack<>();
 
     public SetTemperatureCommand(Thermostat thermostat, int temperature) {
         this.thermostat = thermostat;
@@ -10,12 +12,14 @@ public class SetTemperatureCommand implements Command {
 
     @Override
     public void execute() {
-        previousTemperature = thermostat.getCurrentTemperature();
+        previousTemperatures.push(thermostat.getCurrentTemperature());
         thermostat.setTemperature(newTemperature);
     }
 
     @Override
     public void undo() {
-        thermostat.setTemperature(previousTemperature);
+        if (!previousTemperatures.isEmpty()) {
+            thermostat.setTemperature(previousTemperatures.pop());
+        }
     }
 }

@@ -29,22 +29,28 @@ class StockExchange
 
     public void PlaceBuyOrder(Order order)
     {
-        if (!buyOrders.ContainsKey(order.GetStock().GetSymbol()))
+        lock (matchLock)
         {
-            buyOrders[order.GetStock().GetSymbol()] = new List<Order>();
+            if (!buyOrders.ContainsKey(order.GetStock().GetSymbol()))
+            {
+                buyOrders[order.GetStock().GetSymbol()] = new List<Order>();
+            }
+            buyOrders[order.GetStock().GetSymbol()].Add(order);
+            MatchOrders(order.GetStock());
         }
-        buyOrders[order.GetStock().GetSymbol()].Add(order);
-        MatchOrders(order.GetStock());
     }
 
     public void PlaceSellOrder(Order order)
     {
-        if (!sellOrders.ContainsKey(order.GetStock().GetSymbol()))
+        lock (matchLock)
         {
-            sellOrders[order.GetStock().GetSymbol()] = new List<Order>();
+            if (!sellOrders.ContainsKey(order.GetStock().GetSymbol()))
+            {
+                sellOrders[order.GetStock().GetSymbol()] = new List<Order>();
+            }
+            sellOrders[order.GetStock().GetSymbol()].Add(order);
+            MatchOrders(order.GetStock());
         }
-        sellOrders[order.GetStock().GetSymbol()].Add(order);
-        MatchOrders(order.GetStock());
     }
 
     private void MatchOrders(Stock stock)
@@ -107,9 +113,18 @@ class StockExchange
 
     private void UpdateOrderStatus(Order order, int quantityTraded)
     {
-        // This is a simplified update logic. A real system would handle partial fills.
-        order.SetStatus(OrderStatus.FILLED);
-        order.SetState(new FilledState());
+        // Preserve the example's terminal fill-and-cancel model without claiming a full fill.
+        if (quantityTraded == order.GetQuantity())
+        {
+            order.SetStatus(OrderStatus.FILLED);
+            order.SetState(new FilledState());
+        }
+        else
+        {
+            order.SetStatus(OrderStatus.PARTIALLY_FILLED);
+            order.SetState(new PartiallyFilledState());
+            Console.WriteLine($"Executed {quantityTraded} shares; cancelled unfilled remainder of {order.GetQuantity() - quantityTraded} shares.");
+        }
         string stockSymbol = order.GetStock().GetSymbol();
         
         // Remove from books

@@ -36,8 +36,8 @@ Design and implement a Tic Tac Toe game that allows two players to play on a NxN
 ![](../../../../uml-diagrams/class-diagrams/tictactoe-class-diagram.png)
 
 ### 1. Game
-- **Fields:** Board board, Player[] players, int currentPlayerIndex, GameStatus status
-- **Methods:** play(), makeMove(int row, int col), checkWin(), checkDraw(), switchPlayer(), getCurrentPlayer()
+- **Fields:** Board board, Player player1, Player player2, Player currentPlayer, Player winner, GameStatus status
+- **Methods:** makeMove(Player player, int row, int col), checkWinner(Player player), switchPlayer(), getBoard(), getCurrentPlayer(), getWinner(), getStatus()
 
 ### 2. Board
 - **Fields:** Cell[][] grid, int size
@@ -61,10 +61,13 @@ Design and implement a Tic Tac Toe game that allows two players to play on a NxN
 ## Example Usage
 
 ```java
-Player p1 = new Player("Alice", Symbol.X);
-Player p2 = new Player("Bob", Symbol.O);
-Game game = new Game(p1, p2);
-game.play();
+TicTacToeSystem system = TicTacToeSystem.getInstance();
+Player alice = new Player("Alice", Symbol.X);
+Player bob = new Player("Bob", Symbol.O);
+system.createGame(alice, bob);
+system.makeMove(alice, 0, 0);
+system.makeMove(bob, 1, 0);
+system.makeMove(alice, 0, 1);
 ```
 
 ---

@@ -16,7 +16,7 @@ public class FileSystemDemo {
         fs.addFile("/a/file3.txt", "Some large content to increase file size...");
         fs.addFile("/a/file4.txt", "Short");
 
-        System.out.println("Searching for files and directories matching regex 'file.*\\.txt' with size between 5 and 50 bytes:");
+        System.out.println("Searching for files and directories matching regex 'file.*\\.txt' with size between 5 and 50 UTF-16 code units:");
 
         NodeSearchStrategy strategy = new FilenameAndSizeSearchStrategy();
         Map<String, Object> searchParams = new HashMap<>();
@@ -28,7 +28,7 @@ public class FileSystemDemo {
 
         for (AbstractNode node : foundNodes) {
             if (node instanceof FileNode) {
-                System.out.println("[FILE] " + node.getName() + " (Size: " + ((FileNode) node).getSize() + " bytes)");
+                System.out.println("[FILE] " + node.getName() + " (Size: " + ((FileNode) node).getSize() + " UTF-16 code units)");
             } else {
                 System.out.println("[DIR] " + node.getName());
             }

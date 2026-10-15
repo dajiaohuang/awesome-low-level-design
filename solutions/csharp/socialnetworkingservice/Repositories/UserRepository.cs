@@ -2,6 +2,7 @@ class UserRepository
 {
     private static readonly UserRepository INSTANCE = new UserRepository();
     private readonly Dictionary<string, User> users = new Dictionary<string, User>();
+    private readonly object collectionLock = new object();
 
     private UserRepository() { }
 
@@ -12,12 +13,18 @@ class UserRepository
 
     public void Save(User user)
     {
-        users[user.GetId()] = user;
+        lock (collectionLock)
+        {
+            users[user.GetId()] = user;
+        }
     }
 
     public User FindById(string id)
     {
-        users.TryGetValue(id, out User user);
-        return user;
+        lock (collectionLock)
+        {
+            users.TryGetValue(id, out User user);
+            return user;
+        }
     }
 }

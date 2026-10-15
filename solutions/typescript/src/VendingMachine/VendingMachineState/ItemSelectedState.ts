@@ -33,6 +33,7 @@ export default class ItemSelectedState implements VendingMachineState {
     }
 
     refund() {
+        this.machine.refundBalance();
         this.machine.resetToIdleState();
         this.machine.setState(this.machine.getIdleState());
     }

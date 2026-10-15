@@ -4,8 +4,6 @@ from typing import Dict, List
 from decimal import Decimal
 from datetime import datetime
 import threading
-from concurrent.futures import ThreadPoolExecutor
-import time
 
 class AuctionService:
     _instance = None
@@ -16,8 +14,7 @@ class AuctionService:
             raise Exception("This class is a singleton!")
         self.users: Dict[str, User] = {}
         self.auctions: Dict[str, Auction] = {}
-        self.scheduler = ThreadPoolExecutor(max_workers=10)
-        self._shutdown = False
+        self.scheduled_ends = []
 
     @staticmethod
     def get_instance():
@@ -41,15 +38,12 @@ class AuctionService:
 
         delay = (end_time - datetime.now()).total_seconds()
         if delay > 0:
-            self.scheduler.submit(self._scheduled_end_auction, auction.get_id(), delay)
+            scheduled_end = threading.Timer(delay, self.end_auction, args=(auction.get_id(),))
+            self.scheduled_ends.append(scheduled_end)
+            scheduled_end.start()
 
         print(f"New auction created for '{item_name}' (ID: {auction.get_id()}), ending at {end_time}.")
         return auction
-
-    def _scheduled_end_auction(self, auction_id: str, delay: float):
-        time.sleep(delay)
-        if not self._shutdown:
-            self.end_auction(auction_id)
 
     def view_active_auctions(self) -> List[Auction]:
         return [auction for auction in self.auctions.values() if auction.is_active()]
@@ -69,5 +63,5 @@ class AuctionService:
         return auction
 
     def shutdown(self):
-        self._shutdown = True
-        self.scheduler.shutdown(wait=True)
+        for scheduled_end in self.scheduled_ends:
+            scheduled_end.join()

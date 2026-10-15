@@ -9,9 +9,13 @@ class MovingUpState : IElevatorState
         }
 
         int nextFloor = elevator.GetUpRequests().Min();
-        elevator.SetCurrentFloor(elevator.GetCurrentFloor() + 1);
+        int currentFloor = elevator.GetCurrentFloor();
+        if (currentFloor < nextFloor)
+        {
+            elevator.SetCurrentFloor(currentFloor + 1);
+        }
 
-        if (elevator.GetCurrentFloor() == nextFloor)
+        if (elevator.GetCurrentFloor() >= nextFloor)
         {
             Console.WriteLine($"Elevator {elevator.GetId()} stopped at floor {nextFloor}");
             elevator.GetUpRequests().Remove(nextFloor);

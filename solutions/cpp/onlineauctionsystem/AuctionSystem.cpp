@@ -48,8 +48,13 @@ bool AuctionSystem::placeBid(std::string auctionId, std::string bidderId, double
         return false;
     }
     
+    std::string previousWinner = auction->getWinnerId();
+    double previousAmount = auction->getCurrentPrice();
     if (auction->placeBid(bidderId, amount)) {
         bidder->deductBalance(amount);
+        if (!previousWinner.empty()) {
+            findUser(previousWinner)->addBalance(previousAmount);
+        }
         return true;
     }
     return false;
@@ -71,20 +76,24 @@ void AuctionSystem::startAuction(std::string auctionId) {
 
 void AuctionSystem::endAuction(std::string auctionId) {
     Auction* auction = findAuction(auctionId);
-    if (auction) {
+    if (auction && auction->isActive()) {
         auction->end();
         if (!auction->getWinnerId().empty()) {
             User* winner = findUser(auction->getWinnerId());
-            if (winner) {
-                winner->addPurchasedItem(auction->getItem());
-            }
+            winner->addPurchasedItem(auction->getItem());
+            findUser(auction->getItem()->getSellerId())->addBalance(auction->getCurrentPrice());
         }
     }
 }
 
 void AuctionSystem::cancelAuction(std::string auctionId) {
     Auction* auction = findAuction(auctionId);
-    if (auction) auction->cancel();
+    if (auction && (auction->getStatus() == AuctionStatus::PENDING || auction->isActive())) {
+        if (!auction->getWinnerId().empty()) {
+            findUser(auction->getWinnerId())->addBalance(auction->getCurrentPrice());
+        }
+        auction->cancel();
+    }
 }
 
 std::vector<Auction*> AuctionSystem::getActiveAuctions() const {

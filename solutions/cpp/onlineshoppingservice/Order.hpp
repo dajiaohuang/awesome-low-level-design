@@ -4,7 +4,10 @@
 #include <string>
 #include <vector>
 #include <ctime>
+#include <mutex>
 #include "CartItem.hpp"
+
+class User;
 
 enum class OrderStatus {
     PENDING,
@@ -22,6 +25,8 @@ private:
     double totalAmount;
     std::time_t orderDate;
     OrderStatus status;
+    bool stockRestored = false;
+    mutable std::mutex mutex;
 
 public:
     Order(std::string orderId, User* user, const std::vector<CartItem*>& items);

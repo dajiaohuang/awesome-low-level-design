@@ -17,16 +17,19 @@ class TaskManagementSystem:
         if cls._instance is None:
             with cls._lock:
                 if cls._instance is None:
-                    cls._instance = super().__new__(cls)
-                    cls._instance._initialized = False
+                    instance = super().__new__(cls)
+                    instance._initialized = False
+                    instance._registry_lock = threading.RLock()
+                    cls._instance = instance
         return cls._instance
     
     def __init__(self):
-        if not self._initialized:
-            self._users: Dict[str, User] = {}
-            self._tasks: Dict[str, Task] = {}
-            self._task_lists: Dict[str, TaskList] = {}
-            self._initialized = True
+        with self._registry_lock:
+            if not self._initialized:
+                self._users: Dict[str, User] = {}
+                self._tasks: Dict[str, Task] = {}
+                self._task_lists: Dict[str, TaskList] = {}
+                self._initialized = True
     
     @classmethod
     def get_instance(cls):
@@ -34,17 +37,20 @@ class TaskManagementSystem:
     
     def create_user(self, name: str, email: str) -> User:
         user = User(name, email)
-        self._users[user.id] = user
+        with self._registry_lock:
+            self._users[user.id] = user
         return user
     
     def create_task_list(self, list_name: str) -> TaskList:
         task_list = TaskList(list_name)
-        self._task_lists[task_list.id] = task_list
+        with self._registry_lock:
+            self._task_lists[task_list.id] = task_list
         return task_list
     
     def create_task(self, title: str, description: str, due_date: date,
                    priority: TaskPriority, created_by_user_id: str) -> Task:
-        created_by = self._users.get(created_by_user_id)
+        with self._registry_lock:
+            created_by = self._users.get(created_by_user_id)
         if created_by is None:
             raise ValueError("User not found.")
         
@@ -57,25 +63,32 @@ class TaskManagementSystem:
         
         task.add_observer(ActivityLogger())
         
-        self._tasks[task.get_id()] = task
+        with self._registry_lock:
+            self._tasks[task.get_id()] = task
         return task
     
     def list_tasks_by_user(self, user_id: str) -> List[Task]:
-        user = self._users.get(user_id)
-        return [task for task in self._tasks.values() 
+        with self._registry_lock:
+            user = self._users.get(user_id)
+            tasks = list(self._tasks.values())
+        return [task for task in tasks
                 if task.get_assignee() == user]
     
     def list_tasks_by_status(self, status: TaskStatus) -> List[Task]:
-        return [task for task in self._tasks.values() 
+        with self._registry_lock:
+            tasks = list(self._tasks.values())
+        return [task for task in tasks
                 if task.get_status() == status]
     
     def delete_task(self, task_id: str):
-        if task_id in self._tasks:
-            del self._tasks[task_id]
+        with self._registry_lock:
+            self._tasks.pop(task_id, None)
     
     def search_tasks(self, keyword: str, sorting_strategy: TaskSortStrategy) -> List[Task]:
         matching_tasks = []
-        for task in self._tasks.values():
+        with self._registry_lock:
+            tasks = list(self._tasks.values())
+        for task in tasks:
             if (keyword in task.get_title() or 
                 keyword in task.get_description()):
                 matching_tasks.append(task)

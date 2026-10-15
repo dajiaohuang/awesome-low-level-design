@@ -3,6 +3,7 @@ class CoffeeVendingMachine
     private static CoffeeVendingMachine instance;
     private static readonly object lockObject = new object();
     private IVendingMachineState state;
+    private readonly object transactionLock = new object();
     private Coffee selectedCoffee;
     private int moneyInserted;
 
@@ -29,6 +30,8 @@ class CoffeeVendingMachine
 
     public void SelectCoffee(CoffeeType type, List<ToppingType> toppings)
     {
+        lock (transactionLock)
+        {
         // 1. Create the base coffee using the factory
         Coffee coffee = CoffeeFactory.CreateCoffee(type);
 
@@ -47,23 +50,27 @@ class CoffeeVendingMachine
         }
         // Let the state handle the rest
         state.SelectCoffee(this, coffee);
+        }
     }
 
-    public void InsertMoney(int amount) { state.InsertMoney(this, amount); }
-    public void DispenseCoffee() { state.DispenseCoffee(this); }
-    public void Cancel() { state.Cancel(this); }
+    public void InsertMoney(int amount) { lock (transactionLock) state.InsertMoney(this, amount); }
+    public void DispenseCoffee() { lock (transactionLock) state.DispenseCoffee(this); }
+    public void Cancel() { lock (transactionLock) state.Cancel(this); }
 
     // Getters and Setters used by State objects
-    public void SetState(IVendingMachineState state) { this.state = state; }
-    public IVendingMachineState GetState() { return state; }
-    public void SetSelectedCoffee(Coffee selectedCoffee) { this.selectedCoffee = selectedCoffee; }
-    public Coffee GetSelectedCoffee() { return selectedCoffee; }
-    public void SetMoneyInserted(int moneyInserted) { this.moneyInserted = moneyInserted; }
-    public int GetMoneyInserted() { return moneyInserted; }
+    public void SetState(IVendingMachineState state) { lock (transactionLock) this.state = state; }
+    public IVendingMachineState GetState() { lock (transactionLock) return state; }
+    public void SetSelectedCoffee(Coffee selectedCoffee) { lock (transactionLock) this.selectedCoffee = selectedCoffee; }
+    public Coffee GetSelectedCoffee() { lock (transactionLock) return selectedCoffee; }
+    public void SetMoneyInserted(int moneyInserted) { lock (transactionLock) this.moneyInserted = moneyInserted; }
+    public int GetMoneyInserted() { lock (transactionLock) return moneyInserted; }
 
     public void Reset()
     {
-        selectedCoffee = null;
-        moneyInserted = 0;
+        lock (transactionLock)
+        {
+            selectedCoffee = null;
+            moneyInserted = 0;
+        }
     }
 }

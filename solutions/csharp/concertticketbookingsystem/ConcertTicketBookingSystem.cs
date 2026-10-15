@@ -8,6 +8,7 @@ namespace ConcertBookingSystem
     public class ConcertTicketBookingSystem
     {
         private static ConcertTicketBookingSystem _instance;
+        private static readonly object instanceLock = new object();
         private readonly ConcurrentDictionary<string, Concert> concerts;
         private readonly ConcurrentDictionary<string, Booking> bookings;
         private readonly object lockObject = new object();
@@ -22,11 +23,14 @@ namespace ConcertBookingSystem
         {
             get
             {
-                if (_instance == null)
+                lock (instanceLock)
                 {
-                    _instance = new ConcertTicketBookingSystem();
+                    if (_instance == null)
+                    {
+                        _instance = new ConcertTicketBookingSystem();
+                    }
+                    return _instance;
                 }
-                return _instance;
             }
         }
 
@@ -61,7 +65,20 @@ namespace ConcertBookingSystem
                     }
                 }
 
-                seats.ForEach(seat => seat.Book());
+                int acquired = 0;
+                try
+                {
+                    foreach (var seat in seats)
+                    {
+                        seat.Book();
+                        acquired++;
+                    }
+                }
+                catch (SeatNotAvailableException)
+                {
+                    for (int index = 0; index < acquired; index++) seats[index].Release();
+                    throw;
+                }
 
                 string bookingId = GenerateBookingId();
                 var booking = new Booking(bookingId, user, concert, seats);
@@ -78,8 +95,11 @@ namespace ConcertBookingSystem
 
         public void CancelBooking(string bookingId)
         {
-            bookings.TryRemove(bookingId, out var booking);
-            booking?.CancelBooking();
+            lock (lockObject)
+            {
+                bookings.TryRemove(bookingId, out var booking);
+                booking?.CancelBooking();
+            }
         }
 
         private void ProcessPayment(Booking booking)

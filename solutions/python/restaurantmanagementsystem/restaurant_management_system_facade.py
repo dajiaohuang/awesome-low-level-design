@@ -18,16 +18,19 @@ class RestaurantManagementSystemFacade:
         if cls._instance is None:
             with cls._lock:
                 if cls._instance is None:
-                    cls._instance = super().__new__(cls)
-                    cls._instance._initialized = False
+                    instance = super().__new__(cls)
+                    instance._initialized = False
+                    instance._orders_lock = threading.RLock()
+                    cls._instance = instance
         return cls._instance
     
     def __init__(self):
-        if not self._initialized:
-            self._restaurant = Restaurant.get_instance()
-            self._order_id_counter = 1
-            self._orders: Dict[int, Order] = {}
-            self._initialized = True
+        with self._orders_lock:
+            if not self._initialized:
+                self._restaurant = Restaurant.get_instance()
+                self._order_id_counter = 1
+                self._orders: Dict[int, Order] = {}
+                self._initialized = True
     
     @classmethod
     def get_instance(cls):
@@ -64,8 +67,9 @@ class RestaurantManagementSystemFacade:
             raise RuntimeError("No chefs available.")
         chef = chefs[0]
         
-        order = Order(self._order_id_counter, table_id)
-        self._order_id_counter += 1
+        with self._orders_lock:
+            order = Order(self._order_id_counter, table_id)
+            self._order_id_counter += 1
         
         for item_id in menu_item_ids:
             menu_item = self._restaurant.menu.get_item(item_id)
@@ -78,11 +82,13 @@ class RestaurantManagementSystemFacade:
         prepare_order_command = PrepareOrderCommand(order, chef)
         prepare_order_command.execute()
         
-        self._orders[order.order_id] = order
+        with self._orders_lock:
+            self._orders[order.order_id] = order
         return order
     
     def mark_items_as_ready(self, order_id: int):
-        order = self._orders[order_id]
+        with self._orders_lock:
+            order = self._orders[order_id]
         print(f"\nChef has finished preparing order {order.order_id}")
         
         for item in order.order_items:
@@ -91,14 +97,16 @@ class RestaurantManagementSystemFacade:
             item.next_state()
     
     def serve_order(self, waiter_id: str, order_id: int):
-        order = self._orders[order_id]
+        with self._orders_lock:
+            order = self._orders[order_id]
         waiter = self._restaurant.get_waiter(waiter_id)
         
         serve_order_command = ServeOrderCommand(order, waiter)
         serve_order_command.execute()
     
     def generate_bill(self, order_id: int) -> Bill:
-        order = self._orders[order_id]
+        with self._orders_lock:
+            order = self._orders[order_id]
         # The Decorator pattern adds charges dynamically
         bill_component = BaseBill(order)
         bill_component = TaxDecorator(bill_component, 0.08)  # 8% tax

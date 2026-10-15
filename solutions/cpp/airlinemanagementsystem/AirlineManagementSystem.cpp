@@ -1,5 +1,6 @@
 #include "AirlineManagementSystem.hpp"
 #include <iostream>
+#include <algorithm>
 
 AirlineManagementSystem::AirlineManagementSystem() : bookingIdCounter(1) {}
 
@@ -10,14 +11,17 @@ AirlineManagementSystem::~AirlineManagementSystem() {
 }
 
 void AirlineManagementSystem::addFlight(Flight* flight) {
+    std::lock_guard<std::recursive_mutex> guard(mutex);
     flights.push_back(flight);
 }
 
 void AirlineManagementSystem::addPassenger(Passenger* passenger) {
+    std::lock_guard<std::recursive_mutex> guard(mutex);
     passengers.push_back(passenger);
 }
 
 std::string AirlineManagementSystem::createBooking(Flight* flight, Passenger* passenger, int seatNumber) {
+    std::lock_guard<std::recursive_mutex> guard(mutex);
     if (!flight->bookSeat(seatNumber)) {
         return "";
     }
@@ -29,6 +33,7 @@ std::string AirlineManagementSystem::createBooking(Flight* flight, Passenger* pa
 }
 
 bool AirlineManagementSystem::cancelBooking(std::string bookingId) {
+    std::lock_guard<std::recursive_mutex> guard(mutex);
     Booking* booking = findBooking(bookingId);
     if (!booking) return false;
     
@@ -44,6 +49,7 @@ bool AirlineManagementSystem::cancelBooking(std::string bookingId) {
 }
 
 void AirlineManagementSystem::displayAllFlights() const {
+    std::lock_guard<std::recursive_mutex> guard(mutex);
     std::cout << "\nAll Flights:" << std::endl;
     for (const auto& flight : flights) {
         flight->displayFlightInfo();
@@ -52,6 +58,7 @@ void AirlineManagementSystem::displayAllFlights() const {
 }
 
 void AirlineManagementSystem::displayAllPassengers() const {
+    std::lock_guard<std::recursive_mutex> guard(mutex);
     std::cout << "\nAll Passengers:" << std::endl;
     for (const auto& passenger : passengers) {
         passenger->displayInfo();
@@ -60,6 +67,7 @@ void AirlineManagementSystem::displayAllPassengers() const {
 }
 
 void AirlineManagementSystem::displayAllBookings() const {
+    std::lock_guard<std::recursive_mutex> guard(mutex);
     std::cout << "\nAll Bookings:" << std::endl;
     for (const auto& booking : bookings) {
         booking->displayBookingInfo();
@@ -68,6 +76,7 @@ void AirlineManagementSystem::displayAllBookings() const {
 }
 
 Flight* AirlineManagementSystem::findFlight(std::string flightNumber) const {
+    std::lock_guard<std::recursive_mutex> guard(mutex);
     for (auto flight : flights) {
         if (flight->getFlightNumber() == flightNumber) return flight;
     }
@@ -75,6 +84,7 @@ Flight* AirlineManagementSystem::findFlight(std::string flightNumber) const {
 }
 
 Passenger* AirlineManagementSystem::findPassenger(std::string passportNumber) const {
+    std::lock_guard<std::recursive_mutex> guard(mutex);
     for (auto passenger : passengers) {
         if (passenger->getPassportNumber() == passportNumber) return passenger;
     }
@@ -82,6 +92,7 @@ Passenger* AirlineManagementSystem::findPassenger(std::string passportNumber) co
 }
 
 Booking* AirlineManagementSystem::findBooking(std::string bookingId) const {
+    std::lock_guard<std::recursive_mutex> guard(mutex);
     for (auto booking : bookings) {
         if (booking->getBookingId() == bookingId) return booking;
     }

@@ -35,6 +35,9 @@ func (r *Reservation) Cancel() error {
 		return fmt.Errorf("reservation is not confirmed")
 	}
 
+	if err := r.Room.CancelBooking(); err != nil {
+		return err
+	}
 	r.Status = ReservationStatusCancelled
-	return r.Room.CheckOut()
+	return nil
 }

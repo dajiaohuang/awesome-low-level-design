@@ -10,6 +10,7 @@ bool Bishop::isValidMove(Position newPosition, Piece* board[8][8]) const {
     Position currentPos = getPosition();
     int dx = newPosition.getX() - currentPos.getX();
     int dy = newPosition.getY() - currentPos.getY();
+    if (dx == 0 && dy == 0) return false;
     
     // Bishop can only move diagonally
     if (abs(dx) == abs(dy)) {

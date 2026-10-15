@@ -14,10 +14,11 @@ class DispensingState(MachineState):
     def select_item(self, machine: 'VendingMachine') -> None:
         print("Please wait, dispensing item in progress.")
     
-    def dispense_item(self, machine: 'VendingMachine') -> None:
+    def dispense_item(self, machine: 'VendingMachine') -> bool:
         print("Item dispensed. Thank you!")
         from .idle_state import IdleState
         machine.set_state(IdleState())
+        return True
     
     def cancel_transaction(self, machine: 'VendingMachine') -> None:
         print("Cannot cancel, item is being dispensed.")

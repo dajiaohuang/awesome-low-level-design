@@ -54,6 +54,11 @@ func (rs *RideService) RequestRide(passenger *Passenger, source, destination *Lo
 	rs.notifyDrivers(ride)
 }
 
+// PendingRideRequests exposes the existing driver request queue for consumption.
+func (rs *RideService) PendingRideRequests() <-chan *Ride {
+	return rs.requestedRides
+}
+
 func (rs *RideService) AcceptRide(driver *Driver, ride *Ride) {
 	rs.mu.Lock()
 	defer rs.mu.Unlock()

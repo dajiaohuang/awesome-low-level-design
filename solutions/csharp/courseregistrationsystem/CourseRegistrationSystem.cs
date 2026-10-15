@@ -8,9 +8,11 @@ namespace CourseRegistrationSystem
     public class CourseRegistrationSystem
     {
         private static CourseRegistrationSystem instance;
+        private static readonly object instanceLock = new object();
         private readonly ConcurrentDictionary<string, Course> courses;
         private readonly ConcurrentDictionary<int, Student> students;
         private readonly List<Registration> registrations;
+        private readonly object registrationLock = new object();
 
         private CourseRegistrationSystem()
         {
@@ -21,11 +23,14 @@ namespace CourseRegistrationSystem
 
         public static CourseRegistrationSystem GetInstance()
         {
-            if (instance == null)
+            lock (instanceLock)
             {
-                instance = new CourseRegistrationSystem();
+                if (instance == null)
+                {
+                    instance = new CourseRegistrationSystem();
+                }
+                return instance;
             }
-            return instance;
         }
 
         public void AddCourse(Course course) => courses[course.GetCode()] = course;
@@ -41,16 +46,19 @@ namespace CourseRegistrationSystem
 
         public bool RegisterCourse(Student student, Course course)
         {
-            if (course.GetEnrolledStudents() < course.GetMaxCapacity())
+            lock (registrationLock)
             {
-                Registration registration = new Registration(student, course, DateTime.Now);
-                registrations.Add(registration);
-                student.GetRegisteredCourses().Add(course);
-                course.SetEnrolledStudents(course.GetEnrolledStudents() + 1);
-                NotifyObservers(course);
-                return true;
+                if (course.GetEnrolledStudents() < course.GetMaxCapacity())
+                {
+                    Registration registration = new Registration(student, course, DateTime.Now);
+                    registrations.Add(registration);
+                    student.GetRegisteredCourses().Add(course);
+                    course.SetEnrolledStudents(course.GetEnrolledStudents() + 1);
+                    NotifyObservers(course);
+                    return true;
+                }
+                return false;
             }
-            return false;
         }
 
         public List<Course> GetRegisteredCourses(Student student) => student.GetRegisteredCourses();

@@ -32,16 +32,20 @@ class Innings
         int runsScored = ball.GetRunsScored();
         score += runsScored;
 
-        if (ball.GetExtraType() == ExtraType.WIDE || ball.GetExtraType() == ExtraType.NO_BALL)
+        ExtraType? extraType = ball.GetExtraType();
+        if (extraType == ExtraType.WIDE || extraType == ExtraType.NO_BALL)
         {
             score += 1;
         }
-        else
+        if (extraType != ExtraType.WIDE && extraType != ExtraType.NO_BALL)
+        {
+            ball.GetFacedBy().GetStats().IncrementBallsPlayed();
+            playerStats[ball.GetFacedBy()].IncrementBallsPlayed();
+        }
+        if (extraType != ExtraType.BYE && extraType != ExtraType.LEG_BYE)
         {
             ball.GetFacedBy().GetStats().UpdateRuns(runsScored);
-            ball.GetFacedBy().GetStats().IncrementBallsPlayed();
             playerStats[ball.GetFacedBy()].UpdateRuns(runsScored);
-            playerStats[ball.GetFacedBy()].IncrementBallsPlayed();
         }
 
         if (ball.IsWicket())
