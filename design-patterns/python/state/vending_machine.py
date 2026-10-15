@@ -23,7 +23,7 @@ class VendingMachine:
     
     def dispense_item(self) -> None:
         dispensed = self._state.dispense_item(self)
-        if dispensed and self._money_inserted >= self._item_price:
+        if dispensed:
             self._money_inserted -= self._item_price
             if self._money_inserted > 0:
                 print(f"Change returned: ${self._money_inserted:.2f}")

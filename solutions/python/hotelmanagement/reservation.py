@@ -17,7 +17,7 @@ class Reservation:
     def cancel(self):
         with self.lock:
             if self.status == ReservationStatus.CONFIRMED:
+                self.room.cancel_booking()
                 self.status = ReservationStatus.CANCELLED
-                self.room.check_out()
             else:
                 raise ValueError("Reservation is not confirmed.")

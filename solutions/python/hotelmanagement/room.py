@@ -24,6 +24,12 @@ class Room:
             else:
                 raise ValueError("Room is not booked.")
 
+    def cancel_booking(self):
+        with self.lock:
+            if self.status not in (RoomStatus.BOOKED, RoomStatus.OCCUPIED):
+                raise ValueError("Room has no booking to cancel.")
+            self.status = RoomStatus.AVAILABLE
+
     def check_out(self):
         with self.lock:
             if self.status == RoomStatus.OCCUPIED:

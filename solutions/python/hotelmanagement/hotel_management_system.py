@@ -62,6 +62,8 @@ class HotelManagementSystem:
             reservation = self.reservations.get(reservation_id)
             if reservation and reservation.status == ReservationStatus.CONFIRMED:
                 room = reservation.room
+                if room.status != RoomStatus.OCCUPIED:
+                    raise ValueError("Room is not occupied.")
                 amount = room.price * (reservation.check_out_date - reservation.check_in_date).days
                 if payment.process_payment(amount):
                     room.check_out()

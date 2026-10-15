@@ -18,8 +18,6 @@ public class SetTemperatureCommand implements Command {
 
     @Override
     public void undo() {
-        if (!previousTemperatures.isEmpty()) {
-            thermostat.setTemperature(previousTemperatures.pop());
-        }
+        thermostat.setTemperature(previousTemperatures.pop());
     }
 }
